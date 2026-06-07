@@ -177,26 +177,43 @@ function App() {
         <p><strong>Total Age:</strong> {totalYears} years | <strong>Resource Pool:</strong> {totalResources} rps</p>
         
         <h3>Chosen Lifepaths Chronology</h3>
-        {character.chosenLifepaths.length === 0 ? (
-          <p style={{ color: '#666', fontStyle: 'italic' }}>No lifepaths selected yet. Use the tool configuration selectors above to burn paths.</p>
-        ) : (
-          <ol style={{ paddingLeft: '20px' }}>
-            {character.chosenLifepaths.map((lp, index) => (
-              <li key={index} style={{ marginBottom: '10px' }}>
-                <strong>{lp.name}</strong> 
-                <span style={{ color: '#555', fontSize: '14px' }}> 
-                  ({lp.stock.toUpperCase()} — {lp.setting.replace('_setting', '')}) | Time: {lp.time} yrs
-                </span>
-                <button 
-                  onClick={() => removeLifepath(index)}
-                  style={{ marginLeft: '15px', color: 'red', border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px' }}
-                >
-                  [Remove]
-                </button>
-              </li>
-            ))}
-          </ol>
-        )}
+          {character.chosenLifepaths.length === 0 ? (
+            <p style={{ color: '#666', fontStyle: 'italic' }}>
+              No lifepaths selected yet. Use the configuration selectors above to burn paths.
+            </p>
+          ) : (
+            <ol style={{ paddingLeft: '20px' }}>
+              {character.chosenLifepaths.map((lp, index) => {
+                
+                const formattedStock = lp.stock.charAt(0).toUpperCase() + lp.stock.slice(1);
+
+                const cleanSetting = lp.setting.replace('_setting', '');
+                const formattedSetting = cleanSetting.charAt(0).toUpperCase() + cleanSetting.slice(1);
+
+                return (
+                  <li key={index} style={{ marginBottom: '10px' }}>
+                    <strong>{lp.name}</strong> 
+                    <span style={{ color: '#888', fontSize: '14px' }}> 
+                      {' '}({formattedStock} — {formattedSetting}) | Time: {lp.time} yrs
+                    </span>
+                    <button 
+                      onClick={() => removeLifepath(index)}
+                      style={{ 
+                        marginLeft: '15px', 
+                        color: '#ff4d4d', 
+                        border: 'none', 
+                        background: 'none', 
+                        cursor: 'pointer', 
+                        fontSize: '12px' 
+                      }}
+                    >
+                      [Remove]
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
       </div>
     </div>
   );
