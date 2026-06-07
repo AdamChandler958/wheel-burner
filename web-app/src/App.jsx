@@ -78,7 +78,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>Burning Wheel Character Burner</h1>
+      <h1 style={{ lineHeight: '1.2', marginBottom: '20px' }}>Burning Wheel Character Burner</h1>
       
       <div style={{ marginBottom: '20px' }}>
         <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Character Name:</label>
@@ -92,11 +92,9 @@ function App() {
 
       <hr />
 
-      {/* Dynamic Dropdowns Selection Block */}
       <h2>Add Lifepaths</h2>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
         
-        {/* 1. Stock Selector */}
         <div style={{ flex: '1', minWidth: '150px' }}>
           <label style={{ display: 'block', textTransform: 'capitalize' }}>Stock</label>
           <select value={selectedStock} onChange={handleStockChange} style={{ width: '100%', padding: '8px' }}>
@@ -107,7 +105,6 @@ function App() {
           </select>
         </div>
 
-        {/* 2. Setting Selector (Enabled only when Stock is selected) */}
         <div style={{ flex: '1', minWidth: '150px' }}>
           <label style={{ display: 'block' }}>Setting</label>
           <select 
@@ -131,7 +128,6 @@ function App() {
           </select>
         </div>
 
-        {/* 3. Lifepath Selector (Enabled only when Setting is selected) */}
         <div style={{ flex: '1', minWidth: '200px' }}>
           <label style={{ display: 'block' }}>Lifepath</label>
           <select 
@@ -151,7 +147,6 @@ function App() {
         </div>
       </div>
 
-      {/* Action Button */}
       <button 
         onClick={addLifepathToCharacter}
         disabled={!selectedLifepathKey}
@@ -162,8 +157,13 @@ function App() {
 
       <hr style={{ margin: '30px 0' }} />
 
-      {/* Character Sheet Display View */}
-      <div style={{ background: '#f5f5f5', padding: '20px', borderRadius: '8px' }}>
+      <div style={{ 
+            background: 'transparent', 
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            padding: '20px', 
+            borderRadius: '8px',
+            marginTop: '30px'
+          }}>
         <h2>{character.name || "Unnamed Concept"}</h2>
         <p><strong>Total Age:</strong> {totalYears} years | <strong>Resource Pool:</strong> {totalResources} rps</p>
         
