@@ -139,8 +139,17 @@ function App() {
             <option value="">-- Choose Lifepath --</option>
             {lifepathOptions.map(lpKey => {
               const lp = rules.lifepaths[selectedStock][selectedSetting][lpKey];
+              const isFirstSelection = character.chosenLifepaths.length === 0;
+              const isIllegalStart = isFirstSelection && !lp.is_born;
+
               return (
-                <option key={lpKey} value={lpKey}>{lp.name} ({lp.time} yrs)</option>
+                <option 
+                  key={lpKey} 
+                  value={lpKey}
+                  disabled={isIllegalStart}
+                >
+                  {lp.name} ({lp.time} yrs) {isIllegalStart ? " [Requires Born]" : ""}
+                </option>
               );
             })}
           </select>

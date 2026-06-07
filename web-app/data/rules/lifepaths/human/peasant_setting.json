@@ -6,6 +6,7 @@
         "stat_points": { "physical": 1, "mental": 0 },
         "skill_points": 4,
         "trait_points": 1,
+        "is_born": true,
         "leads": ["peasant_setting", "servitude_setting", "soldier_setting"]
     }
 }
