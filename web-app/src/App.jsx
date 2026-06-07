@@ -8,6 +8,7 @@ function App() {
   const [selectedSetting, setSelectedSetting] = useState('');
   const [selectedLifepathKey, setSelectedLifepathKey] = useState('');
 
+
   const [character, setCharacter] = useState({
     name: "New Character",
     chosenLifepaths: [] 
@@ -37,18 +38,30 @@ function App() {
     setSelectedLifepathKey(''); 
   };
 
+
   const addLifepathToCharacter = () => {
     if (!selectedStock || !selectedSetting || !selectedLifepathKey) return;
+      
 
     const lifepathDetails = rules.lifepaths[selectedStock][selectedSetting][selectedLifepathKey];
-    
+    let calculatedTimeCost = lifepathDetails.time;
+
+    if (chronology.length > 0) {
+      const previousSetting = lastChosenPath.setting;
+      if (selectedSetting !== previousSetting) {
+        calculatedTimeCost += 1; 
+      }
+    }
+
     const newPath = {
       stock: selectedStock,
       setting: selectedSetting,
       key: selectedLifepathKey,
       name: lifepathDetails.name,
-      time: lifepathDetails.time,
-      res: lifepathDetails.res
+      time: calculatedTimeCost,
+      res: lifepathDetails.res,
+      is_born: lifepathDetails.is_born,
+      leads: lifepathDetails.leads || [] 
     };
 
     setCharacter(prev => ({
@@ -69,9 +82,48 @@ function App() {
   if (loading) return <div style={{ padding: '20px' }}>Loading Master Ruleset Assets...</div>;
   if (!rules || !rules.lifepaths) return <div style={{ padding: '20px' }}>Error: Data compilation missing or malformed.</div>;
 
-  const stockOptions = Object.keys(rules.lifepaths);
-  const settingOptions = selectedStock ? Object.keys(rules.lifepaths[selectedStock]) : [];
-  const lifepathOptions = (selectedStock && selectedSetting) ? Object.keys(rules.lifepaths[selectedStock][selectedSetting]) : [];
+  const chronology = character.chosenLifepaths;
+  const isFirstLifepath = chronology.length === 0;
+  const lastChosenPath = !isFirstLifepath ? chronology[chronology.length - 1] : null;
+
+  const stockOptions = rules.lifepaths ? Object.keys(rules.lifepaths) : [];
+
+  let settingOptions = [];
+  if (selectedStock && rules.lifepaths[selectedStock]) {
+    const allSettingsInStock = Object.keys(rules.lifepaths[selectedStock]);
+
+    if (isFirstLifepath) {
+      settingOptions = allSettingsInStock.filter(settingKey => {
+        const lifepathsInSetting = rules.lifepaths[selectedStock][settingKey];
+        return Object.values(lifepathsInSetting).some(lp => lp.is_born === true);
+      });
+    } else {
+      const activeLeads = lastChosenPath?.leads || [];
+      
+      settingOptions = allSettingsInStock.filter(settingKey => {
+        const isCurrentSetting = settingKey === lastChosenPath.setting;
+        
+        return isCurrentSetting || activeLeads.includes(settingKey);
+      });
+    }
+  }
+
+
+
+  let lifepathOptions = [];
+  if (selectedStock && selectedSetting && rules.lifepaths[selectedStock][selectedSetting]) {
+    const allLifepathsInSetting = Object.keys(rules.lifepaths[selectedStock][selectedSetting]);
+
+    if (isFirstLifepath) {
+      lifepathOptions = allLifepathsInSetting.filter(lpKey => {
+        return rules.lifepaths[selectedStock][selectedSetting][lpKey].is_born === true;
+      });
+    } else {
+      lifepathOptions = allLifepathsInSetting.filter(lpKey => {
+        return rules.lifepaths[selectedStock][selectedSetting][lpKey].is_born !== true;
+      });
+    }
+  }
 
   const totalYears = character.chosenLifepaths.reduce((sum, lp) => sum + lp.time, 0);
   const totalResources = character.chosenLifepaths.reduce((sum, lp) => sum + (lp.res || 0), 0);
