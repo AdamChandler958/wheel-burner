@@ -1,122 +1,196 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [rules, setRules] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [selectedStock, setSelectedStock] = useState('');
+  const [selectedSetting, setSelectedSetting] = useState('');
+  const [selectedLifepathKey, setSelectedLifepathKey] = useState('');
+
+  const [character, setCharacter] = useState({
+    name: "New Character",
+    chosenLifepaths: [] 
+  });
+
+  useEffect(() => {
+    fetch('/master_rules.json')
+      .then(res => res.json())
+      .then(data => {
+        setRules(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching ruleset:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleStockChange = (e) => {
+    setSelectedStock(e.target.value);
+    setSelectedSetting(''); 
+    setSelectedLifepathKey(''); 
+  };
+
+  const handleSettingChange = (e) => {
+    setSelectedSetting(e.target.value);
+    setSelectedLifepathKey(''); 
+  };
+
+  const addLifepathToCharacter = () => {
+    if (!selectedStock || !selectedSetting || !selectedLifepathKey) return;
+
+    const lifepathDetails = rules.lifepaths[selectedStock][selectedSetting][selectedLifepathKey];
+    
+    const newPath = {
+      stock: selectedStock,
+      setting: selectedSetting,
+      key: selectedLifepathKey,
+      name: lifepathDetails.name,
+      time: lifepathDetails.time,
+      res: lifepathDetails.res
+    };
+
+    setCharacter(prev => ({
+      ...prev,
+      chosenLifepaths: [...prev.chosenLifepaths, newPath]
+    }));
+
+    setSelectedLifepathKey('');
+  };
+
+  const removeLifepath = (indexToRemove) => {
+    setCharacter(prev => ({
+      ...prev,
+      chosenLifepaths: prev.chosenLifepaths.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading Master Ruleset Assets...</div>;
+  if (!rules || !rules.lifepaths) return <div style={{ padding: '20px' }}>Error: Data compilation missing or malformed.</div>;
+
+  const stockOptions = Object.keys(rules.lifepaths);
+  const settingOptions = selectedStock ? Object.keys(rules.lifepaths[selectedStock]) : [];
+  const lifepathOptions = (selectedStock && selectedSetting) ? Object.keys(rules.lifepaths[selectedStock][selectedSetting]) : [];
+
+  const totalYears = character.chosenLifepaths.reduce((sum, lp) => sum + lp.time, 0);
+  const totalResources = character.chosenLifepaths.reduce((sum, lp) => sum + (lp.res || 0), 0);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>Burning Wheel Character Burner</h1>
+      
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Character Name:</label>
+        <input 
+          type="text" 
+          value={character.name} 
+          onChange={(e) => setCharacter(prev => ({ ...prev, name: e.target.value }))}
+          style={{ width: '100%', padding: '8px', fontSize: '16px' }}
+        />
+      </div>
 
-      <div className="ticks"></div>
+      <hr />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Dynamic Dropdowns Selection Block */}
+      <h2>Add Lifepaths</h2>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
+        
+        {/* 1. Stock Selector */}
+        <div style={{ flex: '1', minWidth: '150px' }}>
+          <label style={{ display: 'block', textTransform: 'capitalize' }}>Stock</label>
+          <select value={selectedStock} onChange={handleStockChange} style={{ width: '100%', padding: '8px' }}>
+            <option value="">-- Choose Stock --</option>
+            {stockOptions.map(stock => (
+              <option key={stock} value={stock}>{stock.charAt(0).toUpperCase() + stock.slice(1)}</option>
+            ))}
+          </select>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* 2. Setting Selector (Enabled only when Stock is selected) */}
+        <div style={{ flex: '1', minWidth: '150px' }}>
+          <label style={{ display: 'block' }}>Setting</label>
+          <select 
+            value={selectedSetting} 
+            onChange={handleSettingChange} 
+            disabled={!selectedStock}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="">-- Choose Setting --</option>
+            {settingOptions.map(setting => {
+              const cleanName = setting.replace('_setting', '');
+              
+              const displayName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+              return (
+                <option key={setting} value={setting}>
+                  {displayName}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        {/* 3. Lifepath Selector (Enabled only when Setting is selected) */}
+        <div style={{ flex: '1', minWidth: '200px' }}>
+          <label style={{ display: 'block' }}>Lifepath</label>
+          <select 
+            value={selectedLifepathKey} 
+            onChange={(e) => setSelectedLifepathKey(e.target.value)} 
+            disabled={!selectedSetting}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="">-- Choose Lifepath --</option>
+            {lifepathOptions.map(lpKey => {
+              const lp = rules.lifepaths[selectedStock][selectedSetting][lpKey];
+              return (
+                <option key={lpKey} value={lpKey}>{lp.name} ({lp.time} yrs)</option>
+              );
+            })}
+          </select>
+        </div>
+      </div>
+
+      {/* Action Button */}
+      <button 
+        onClick={addLifepathToCharacter}
+        disabled={!selectedLifepathKey}
+        style={{ padding: '10px 20px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+      >
+        Burn Lifepath
+      </button>
+
+      <hr style={{ margin: '30px 0' }} />
+
+      {/* Character Sheet Display View */}
+      <div style={{ background: '#f5f5f5', padding: '20px', borderRadius: '8px' }}>
+        <h2>{character.name || "Unnamed Concept"}</h2>
+        <p><strong>Total Age:</strong> {totalYears} years | <strong>Resource Pool:</strong> {totalResources} rps</p>
+        
+        <h3>Chosen Lifepaths Chronology</h3>
+        {character.chosenLifepaths.length === 0 ? (
+          <p style={{ color: '#666', fontStyle: 'italic' }}>No lifepaths selected yet. Use the tool configuration selectors above to burn paths.</p>
+        ) : (
+          <ol style={{ paddingLeft: '20px' }}>
+            {character.chosenLifepaths.map((lp, index) => (
+              <li key={index} style={{ marginBottom: '10px' }}>
+                <strong>{lp.name}</strong> 
+                <span style={{ color: '#555', fontSize: '14px' }}> 
+                  ({lp.stock.toUpperCase()} — {lp.setting.replace('_setting', '')}) | Time: {lp.time} yrs
+                </span>
+                <button 
+                  onClick={() => removeLifepath(index)}
+                  style={{ marginLeft: '15px', color: 'red', border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  [Remove]
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;

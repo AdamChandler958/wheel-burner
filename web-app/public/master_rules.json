@@ -1,0 +1,24 @@
+{
+  "lifepaths": {
+    "human": {
+      "peasant_setting": {
+        "born_peasant": {
+          "name": "Born Peasant",
+          "time": 8,
+          "res": 5,
+          "stat_points": {
+            "physical": 1,
+            "mental": 0
+          },
+          "skill_points": 4,
+          "trait_points": 1,
+          "leads": [
+            "peasant_setting",
+            "servitude_setting",
+            "soldier_setting"
+          ]
+        }
+      }
+    }
+  }
+}
