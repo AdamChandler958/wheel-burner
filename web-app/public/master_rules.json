@@ -53,7 +53,7 @@
           "leads": [
             "servitude_setting",
             "soldier_setting",
-            "outcast_settting"
+            "outcast_setting"
           ]
         },
         "galley_slave": {
@@ -70,7 +70,26 @@
           "leads": [
             "servitude_setting",
             "soldier_setting",
-            "outcast_settting"
+            "outcast_setting"
+          ]
+        }
+      },
+      "servitude_setting": {
+        "born_slave": {
+          "name": "Born Slave",
+          "time": 12,
+          "res": 5,
+          "stat_choice": {
+            "options": [
+              "physical",
+              "mental"
+            ],
+            "amount": -1
+          },
+          "is_born": true,
+          "leads": [
+            "soldier_setting",
+            "outcast_setting"
           ]
         }
       }
