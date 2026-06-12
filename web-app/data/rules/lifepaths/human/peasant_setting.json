@@ -2,10 +2,21 @@
     "born_peasant": {
         "name": "Born Peasant",
         "time": 8,
+        "res": 3,
+        "stat_points": { "physical": 0, "mental": 0 },
+        "skill_points": 3,
+        "trait_points": 2,
+        "is_born": true,
+        "leads": ["servitude_setting", "soldier_setting", "seafarer_setting", "religious_setting"]
+    },
+    "farmer": {
+        "name": "Farmer",
+        "time": 8,
         "res": 5,
-        "stat_points": { "physical": 1, "mental": 0 },
-        "skill_points": 4,
+        "stat_points": {"physical": 1, "mental": 0},
+        "skill_points": 8,
         "trait_points": 1,
-        "leads": ["peasant_setting", "servitude_setting", "soldier_setting"]
+        "is_born": false,
+        "leads": ["villager_setting", "soldier_setting", "servitude_setting"]
     }
 }

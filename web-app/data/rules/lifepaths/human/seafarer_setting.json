@@ -1,0 +1,22 @@
+{
+    "son_of_a_gun": {
+        "name": "Son of a Gun",
+        "time": 8,
+        "res": 3,
+        "stat_points": { "physical": 0, "mental": 0},
+        "skill_points": 3,
+        "trait_points": 2,
+        "is_born": true,
+        "leads": ["servitude_setting", "soldier_setting", "outcast_setting"]
+    },
+    "galley_slave": {
+        "name": "Galley Slave",
+        "time": 6,
+        "res": 3,
+        "stat_points": { "physical": 0, "mental": 0},
+        "skill_points": 3,
+        "trait_points": 3,
+        "is_born": false,
+        "leads": ["servitude_setting", "soldier_setting", "outcast_setting"]
+    }
+}
