@@ -13,7 +13,15 @@ function App() {
 
   const [character, setCharacter] = useState({
     name: "New Character",
-    chosenLifepaths: [] 
+    chosenLifepaths: [],
+    assignedStats: {
+      will: 0,
+      perception: 0,
+      agility: 0,
+      speed: 0,
+      power: 0,
+      forte: 0
+    }
   });
 
   useEffect(() => {
@@ -129,6 +137,25 @@ function App() {
     }));
   };
 
+  const adjustStatValue = (statName, direction, poolType) => {
+    const currentVal = character.assignedStats[statName];
+    const poolRemaining = poolType === 'mental' ? remainingMental : remainingPhysical;
+
+    if (direction === 'dec' && currentVal <= 0) return;
+    
+    if (direction === 'inc' && poolRemaining <= 0) return;
+
+    const modifier = direction === 'inc' ? 1 : -1;
+
+    setCharacter(prev => ({
+      ...prev,
+      assignedStats: {
+        ...prev.assignedStats,
+        [statName]: currentVal + modifier
+      }
+    }));
+  };
+
   if (loading) return <div style={{ padding: '20px' }}>Loading Master Ruleset Assets...</div>;
   if (!rules || !rules.lifepaths) return <div style={{ padding: '20px' }}>Error: Data compilation missing or malformed.</div>;
 
@@ -200,6 +227,22 @@ function App() {
 
   const finalMentalPool = baseMentalPool + lifepathMentalMod;
   const finalPhysicalPool = basePhysicalPool + lifepathPhysicalMod;
+
+  const stats = character.assignedStats;
+  
+  const spentMental = stats.will + stats.perception;
+  const remainingMental = finalMentalPool - spentMental;
+
+  const spentPhysical = stats.agility + stats.speed + stats.power + stats.forte;
+  const remainingPhysical = finalPhysicalPool - spentPhysical;
+
+  const healthSum = stats.will + stats.perception + stats.agility + stats.speed + stats.power + stats.forte;
+  const calculatedHealth = healthSum > 0 ? Math.floor(healthSum / 6) : 0;
+
+  const reflexesSum = stats.perception + stats.agility + stats.speed;
+  const calculatedReflexes = reflexesSum > 0 ? Math.floor(reflexesSum / 3) : 0;
+
+  const calculatedSteel = stats.will > 0 ? Math.floor((stats.will + stats.perception) / 2) : 0;
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -340,6 +383,106 @@ function App() {
               })}
             </ol>
           )}
+      </div>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '1fr 1fr', 
+        gap: '20px', 
+        marginTop: '25px',
+        marginBottom: '30px'
+      }}>
+        
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px' }}>
+          <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+            Assigned Stats
+          </h3>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '15px', padding: '5px 10px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '4px' }}>
+            <span style={{ color: remainingMental < 0 ? '#ff4d4d' : '#aaa' }}>
+              Mental Remaining: <strong>{remainingMental}</strong>
+            </span>
+            <span style={{ color: remainingPhysical < 0 ? '#ff4d4d' : '#aaa' }}>
+              Physical Remaining: <strong>{remainingPhysical}</strong>
+            </span>
+          </div>
+
+          {[
+            { key: 'will', name: 'Will', type: 'mental' },
+            { key: 'perception', name: 'Perception', type: 'mental' },
+            { key: 'agility', name: 'Agility', type: 'physical' },
+            { key: 'speed', name: 'Speed', type: 'physical' },
+            { key: 'power', name: 'Power', type: 'physical' },
+            { key: 'forte', name: 'Forte', type: 'physical' }
+          ].map(stat => (
+            <div key={stat.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div>
+                <strong style={{ textTransform: 'capitalize' }}>{stat.name}</strong>
+                <span style={{ fontSize: '11px', color: '#666', marginLeft: '8px' }}>({stat.type})</span>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button 
+                  onClick={() => adjustStatValue(stat.key, 'dec', stat.type)}
+                  style={{ width: '28px', height: '28px', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px', border: '1px solid #444', backgroundColor: '#333', color: '#fff' }}
+                >
+                  -
+                </button>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', minWidth: '20px', textAlign: 'center', color:  '#888'}}>
+                  {character.assignedStats[stat.key]}
+                </span>
+                <button 
+                  onClick={() => adjustStatValue(stat.key, 'inc', stat.type)}
+                  style={{ width: '28px', height: '28px', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px', border: '1px solid #444', backgroundColor: '#333', color: '#fff' }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px' }}>
+          <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+            Calculated Attributes
+          </h3>
+          <p style={{ fontSize: '12px', color: '#666', marginTop: '-5px', marginBottom: '20px' }}>
+            Derived automatically from your active exponents above using system formulas.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            
+            <div style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.03)'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong>Health</strong>
+                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#888' }}>B{calculatedHealth}</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#666', display: 'block', marginTop: '4px' }}>
+                Formula: Average of all six base stats (rounded down)
+              </span>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.03)'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong>Reflexes</strong>
+                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#888' }}>B{calculatedReflexes}</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#666', display: 'block', marginTop: '4px' }}>
+                Formula: Average of Perception, Agility, and Speed (rounded down)
+              </span>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.03)'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong>Steel</strong>
+                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#888'  }}>B{calculatedSteel}</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#666', display: 'block', marginTop: '4px' }}>
+                Formula: Average of Will and Perception (rounded down)
+              </span>
+            </div>
+          </div>
+        </div>
+
       </div>
       {pendingLifepath && (
         <div style={{
