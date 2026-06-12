@@ -1,0 +1,16 @@
+{
+    "stock": "human",
+    "bands": [
+        {"min_age": 1, "max_age": 10, "mental": 5, "physical": 10},
+        {"min_age": 11, "max_age": 14, "mental": 6, "physical": 13},
+        {"min_age": 15, "max_age": 16, "mental": 6, "physical": 16},
+        {"min_age": 17, "max_age": 25, "mental": 7, "physical": 16},
+        {"min_age": 26, "max_age": 29, "mental": 7, "physical": 15},
+        {"min_age": 30, "max_age": 35, "mental": 7, "physical": 14},
+        {"min_age": 36, "max_age": 40, "mental": 7, "physical": 13},
+        {"min_age": 41, "max_age": 55, "mental": 7, "physical": 12},
+        {"min_age": 56, "max_age": 65, "mental": 7, "physical": 11},
+        {"min_age": 66, "max_age": 79, "mental": 7, "physical": 10},
+        {"min_age": 80, "max_age": 100, "mental": 6, "physical": 9}
+    ]
+}

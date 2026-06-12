@@ -178,6 +178,29 @@ function App() {
   const totalYears = character.chosenLifepaths.reduce((sum, lp) => sum + lp.time, 0);
   const totalResources = character.chosenLifepaths.reduce((sum, lp) => sum + (lp.res || 0), 0);
 
+  let baseMentalPool = 0;
+  let basePhysicalPool = 0;
+
+  const activeStockKey = selectedStock || 'human';
+  const ageChart = rules?.ages?.[activeStockKey];
+
+  if (ageChart && ageChart.bands) {
+    const matchingBand = ageChart.bands.find(band =>
+      totalYears >= band.min_age && totalYears <= band.max_age
+    );
+
+    if (matchingBand) {
+      baseMentalPool = matchingBand.mental;
+      basePhysicalPool = matchingBand.physical
+    }
+  }
+
+  const lifepathMentalMod = character.chosenLifepaths.reduce((sum, lp) => sum + (lp.stat_points?.mental || 0), 0);
+  const lifepathPhysicalMod = character.chosenLifepaths.reduce((sum, lp) => sum + (lp.stat_points?.physical || 0), 0);
+
+  const finalMentalPool = baseMentalPool + lifepathMentalMod;
+  const finalPhysicalPool = basePhysicalPool + lifepathPhysicalMod;
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
       <h1 style={{ lineHeight: '1.2', marginBottom: '20px' }}>Burning Wheel Character Burner</h1>
@@ -276,7 +299,8 @@ function App() {
             marginTop: '30px'
           }}>
         <h2>{character.name || "Unnamed Concept"}</h2>
-        <p><strong>Total Age:</strong> {totalYears} years | <strong>Resource Pool:</strong> {totalResources} rps</p>
+        <p><strong>Total Age:</strong> {totalYears} years | <strong>Resource Pool:</strong> {totalResources} rps | <strong>Mental Pool:</strong> {finalMentalPool} | <strong>Physical Pool:</strong> {finalPhysicalPool} </p>
+        <hr></hr>
         
         <h3>Chosen Lifepaths Chronology</h3>
           {character.chosenLifepaths.length === 0 ? (
