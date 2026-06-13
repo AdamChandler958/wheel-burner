@@ -3,11 +3,13 @@ import path from 'path';
 
 const lifepathsDir = './data/rules/lifepaths';
 const agesDir = './data/rules/ages';
+const skillDir = './data/rules/skills';
 const outputFile = './public/master_rules.json';
 
 const masterRules = {
     lifepaths: {},
-    ages: {}
+    ages: {},
+    skills: {}
 };
 
 try {
@@ -55,6 +57,23 @@ try {
         console.log('Age charts successfully integrated.');
     } else {
         console.warn(`Warning: Age directory not found at ${agesDir}. Skipping age table compilation.`);
+    }
+
+    if (fs.existsSync(skillDir)) {
+        const skillFiles = fs.readdirSync(skillDir);
+
+        skillFiles.forEach(file => {
+            if (file.endsWith('.json')) {
+                const filePath = path.join(skillDir, file);
+                const rawData = fs.readFileSync(filePath, 'utf8');
+                const parsedData = JSON.parse(rawData);
+
+                masterRules.skills = parsedData;
+            }
+        });
+        console.log('Skills successfully integrated.');
+    } else {
+        console.warn(`Warning: Skills directory not found at ${skillDir}. Skipping skills compilation.`);
     }
 
     fs.writeFileSync(outputFile, JSON.stringify(masterRules, null, 2));

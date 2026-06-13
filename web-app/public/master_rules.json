@@ -10,6 +10,9 @@
             "physical": 0,
             "mental": 0
           },
+          "skills": [
+            "general"
+          ],
           "skill_points": 3,
           "trait_points": 2,
           "is_born": true,
@@ -28,6 +31,16 @@
             "physical": 1,
             "mental": 0
           },
+          "skills": [
+            "farming",
+            "mending",
+            "animal_husbandry",
+            "weaving",
+            "cooking",
+            "sewing",
+            "firebuilding",
+            "sing"
+          ],
           "skill_points": 8,
           "trait_points": 1,
           "is_born": false,
@@ -165,6 +178,58 @@
           "mental": 6,
           "physical": 9
         }
+      ]
+    }
+  },
+  "skills": {
+    "farming": {
+      "name": "Farming",
+      "roots": [
+        "perception"
+      ]
+    },
+    "mending": {
+      "name": "Mending",
+      "roots": [
+        "perception",
+        "agility"
+      ]
+    },
+    "animal_husbandry": {
+      "name": "Animal Husbandry",
+      "roots": [
+        "will"
+      ]
+    },
+    "weaving": {
+      "name": "Weaving",
+      "roots": [
+        "perception",
+        "agility"
+      ]
+    },
+    "cooking": {
+      "name": "Cooking",
+      "roots": [
+        "perception"
+      ]
+    },
+    "sewing": {
+      "name": "Sewing",
+      "roots": [
+        "agility"
+      ]
+    },
+    "firebuiliding": {
+      "name": "Firebuilding",
+      "roots": [
+        "perception"
+      ]
+    },
+    "sing": {
+      "name": "Sing",
+      "roots": [
+        "will"
       ]
     }
   }
