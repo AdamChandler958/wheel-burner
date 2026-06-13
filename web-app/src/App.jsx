@@ -205,6 +205,7 @@ function App() {
   const totalYears = character.chosenLifepaths.reduce((sum, lp) => sum + lp.time, 0);
   const totalResources = character.chosenLifepaths.reduce((sum, lp) => sum + (lp.res || 0), 0);
 
+  // Attribute Section
   let baseMentalPool = 0;
   let basePhysicalPool = 0;
 
@@ -228,6 +229,7 @@ function App() {
   const finalMentalPool = baseMentalPool + lifepathMentalMod;
   const finalPhysicalPool = basePhysicalPool + lifepathPhysicalMod;
 
+  // Stat section
   const stats = character.assignedStats;
   
   const spentMental = stats.will + stats.perception;
@@ -245,6 +247,67 @@ function App() {
   const calculatedSteel = stats.will > 0 ? Math.floor((stats.will + stats.perception) / 2) : 0;
 
   const hasZeroStats = Object.values(character.assignedStats).some(value => value === 0);
+
+  // Skill Section
+
+  const openedSkills = {};
+  const validLifepathSkillsSet = new Set();
+
+  let totalLifepathSkillPoints = 0;
+  let totalGeneralPoints = 0;
+
+  character.chosenLifepaths.forEach(lp => {
+    const points = lp.skill_pts || 0;
+
+    if (lp.skills && lp.skills.length === 1 && lp.skills[0] === 'general') {
+      totalGeneralPoints += points;
+    } else {
+      totalLifepathSkillPoints += points;
+    }
+  });
+
+
+  character.chosenLifepaths.forEach((lp) => {
+    if (!lp.skills || lp.skills.length === 0) return;
+    const isGeneralPath = lp.skills.length === 1 && lp.skills[0] === 'general';
+    
+    if (!isGeneralPath) {
+      lp.skills.forEach(skillKey => validLifepathSkillsSet.add(skillKey));
+    }
+
+    let skillToOpenKey = null;
+    const primarySkillKey = lp.skills[0];
+    const secondarySkillKey = lp.skills[1];
+
+    if (!isGeneralPath) {
+      if (!openedSkills[primarySkillKey]) {
+        skillToOpenKey = primarySkillKey;
+      } else if (secondarySkillKey && !openedSkills[secondarySkillKey]) {
+        skillToOpenKey = secondarySkillKey;
+      }
+    }
+
+    if (skillToOpenKey && rules?.skills?.[skillToOpenKey]) {
+      const skillDef = rules.skills[skillToOpenKey];
+      const roots = skillDef.roots || [];
+      let calculatedExponent = 0;
+
+      if (roots.length === 1) {
+        calculatedExponent = Math.floor((character.assignedStats[roots[0]] || 0) / 2);
+      } else if (roots.length === 2) {
+        const averageRoot = ((character.assignedStats[roots[0]] || 0) + (character.assignedStats[roots[1]] || 0)) / 2;
+        calculatedExponent = Math.floor(averageRoot / 2);
+      }
+
+      openedSkills[skillToOpenKey] = {
+        name: skillDef.name,
+        exponent: calculatedExponent,
+        roots: roots.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join('/')
+      };
+    }
+  });
+
+  const openedSkillsList = Object.values(openedSkills);
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
