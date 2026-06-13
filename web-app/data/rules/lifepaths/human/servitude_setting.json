@@ -7,6 +7,7 @@
             "options": ["physical", "mental"],
             "amount": -1
         },
+        "skills": ["general"],
         "is_born": true,
         "leads": ["soldier_setting", "outcast_setting"]
     }

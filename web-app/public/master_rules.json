@@ -60,6 +60,9 @@
             "physical": 0,
             "mental": 0
           },
+          "skills": [
+            "general"
+          ],
           "skill_points": 3,
           "trait_points": 2,
           "is_born": true,
@@ -77,6 +80,9 @@
             "physical": 0,
             "mental": 0
           },
+          "skills": [
+            "general"
+          ],
           "skill_points": 3,
           "trait_points": 3,
           "is_born": false,
@@ -99,6 +105,9 @@
             ],
             "amount": -1
           },
+          "skills": [
+            "general"
+          ],
           "is_born": true,
           "leads": [
             "soldier_setting",

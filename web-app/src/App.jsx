@@ -69,6 +69,8 @@ function App() {
       key: selectedLifepathKey,
       name: lifepathDetails.name,
       time: calculatedTimeCost,
+      skills: lifepathDetails.skills || [], 
+      skill_points: lifepathDetails.skill_points || 0,
       res: lifepathDetails.res,
       is_born: lifepathDetails.is_born,
       leads: lifepathDetails.leads || [] 
@@ -257,7 +259,7 @@ function App() {
   let totalGeneralPoints = 0;
 
   character.chosenLifepaths.forEach(lp => {
-    const points = lp.skill_pts || 0;
+    const points = lp.skill_points || 0;
 
     if (lp.skills && lp.skills.length === 1 && lp.skills[0] === 'general') {
       totalGeneralPoints += points;
@@ -574,6 +576,65 @@ function App() {
         </>
           
       )}
+
+      <div style={{ 
+            backgroundColor: 'rgba(255,255,255,0.02)', 
+            border: '1px solid rgba(255,255,255,0.1)', 
+            padding: '20px', 
+            borderRadius: '8px',
+            marginTop: '20px'
+          }}>
+            <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+              Skills Management
+            </h3>
+
+            {/* 🌟 NEW: SKILL POINT WALLET TRACKER DISPLAY */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '20px', 
+              margin: '0 0 20px 0', 
+              padding: '12px', 
+              backgroundColor: 'rgba(0,0,0,0.3)', 
+              borderRadius: '6px',
+              justifyContent: 'center' 
+            }}>
+              <div>
+                <span style={{ color: '#aaa', fontSize: '12px', textTransform: 'uppercase', display: 'block' }}>Lifepath Skill Pool</span>
+                <strong style={{ fontSize: '18px', color: '#2ecc71' }}>{totalLifepathSkillPoints} pts</strong>
+              </div>
+              <div style={{ borderLeft: '1px solid #444', paddingLeft: '20px' }}>
+                <span style={{ color: '#aaa', fontSize: '12px', textTransform: 'uppercase', display: 'block' }}>General Skill Pool</span>
+                <strong style={{ fontSize: '18px', color: '#f1c40f' }}>{totalGeneralPoints} pts</strong>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '-5px', marginBottom: '20px' }}>
+              Skills opened automatically by chronology configuration. Lifepath points can only be allocated to skills provided by your backgrounds.
+            </p>
+
+            {openedSkillsList.length === 0 ? (
+              <p style={{ color: '#555', fontStyle: 'italic', fontSize: '14px' }}>
+                No skills have been opened by your current lifepath sequence configuration.
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                {openedSkillsList.map((skill, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '6px', borderLeft: '4px solid #0070f3' }}>
+                    <div>
+                      <strong style={{ fontSize: '16px' }}>{skill.name}</strong>
+                      <span style={{ display: 'block', fontSize: '11px', color: '#555', marginTop: '2px' }}>
+                        Roots: {skill.roots}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#0070f3' }}>B{skill.exponent}</span>
+                      <span style={{ display: 'block', fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>Rank</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
       {pendingLifepath && (
         <div style={{
