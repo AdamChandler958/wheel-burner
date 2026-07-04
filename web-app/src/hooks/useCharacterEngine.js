@@ -63,7 +63,7 @@ export function useCharacterEngine() {
       
       setCharacter(prev => {
         const updatedTraits = { ...prev.assignedTraits };
-        const updatedMandatory = [...prev.mandatoryTraitKeys];
+        const updatedMandatory = [...prev.mandatoryTraits];
         
         updatedTraits[firstTraitKey] = 0; 
         if (!updatedMandatory.includes(firstTraitKey)) {
@@ -73,7 +73,7 @@ export function useCharacterEngine() {
         return {
           ...prev,
           assignedTraits: updatedTraits,
-          mandatoryTraitKeys: updatedMandatory
+          mandatoryTraits: updatedMandatory
         };
       });
     }
@@ -110,7 +110,7 @@ export function useCharacterEngine() {
   const commitLifepathWithTraits = (newPath) => {
     setCharacter(prev => {
       const updatedTraits = { ...prev.assignedTraits };
-      const updatedMandatory = [...prev.mandatoryTraitKeys];
+      const updatedMandatory = [...prev.mandatoryTraits];
 
       if (newPath.traits && newPath.traits.length > 0) {
         const firstTraitKey = newPath.traits[0];
@@ -124,7 +124,7 @@ export function useCharacterEngine() {
         ...prev,
         chosenLifepaths: [...prev.chosenLifepaths, newPath],
         assignedTraits: updatedTraits,
-        mandatoryTraitKeys: updatedMandatory
+        mandatoryTraits: updatedMandatory
       };
     });
   };
@@ -186,7 +186,7 @@ export function useCharacterEngine() {
       const updatedTraits = { ...prev.assignedTraits };
 
 
-      prev.mandatoryTraitKeys.forEach(oldMandatoryKey => {
+      prev.mandatoryTraits.forEach(oldMandatoryKey => {
         if (!remainingMandatoryKeys.includes(oldMandatoryKey)) {
 
           delete updatedTraits[oldMandatoryKey];
@@ -202,7 +202,7 @@ export function useCharacterEngine() {
         ...prev,
         chosenLifepaths: updatedLifepaths,
         assignedTraits: updatedTraits,
-        mandatoryTraitKeys: remainingMandatoryKeys
+        mandatoryTraits: remainingMandatoryKeys
       };
     });
   };
@@ -455,16 +455,16 @@ export function useCharacterEngine() {
 
   const eligibleLifepathTraitKeys = new Set();
   character.chosenLifepaths.forEach(chosen => {
-    const lp = rules.lifepaths[chosen.stock][chosen.setting][chosen.key];
-    if (lp.traits) {
-      lp.traits.forEach(tKey => eligibleLifepathTraitKeys.add(tKey));
-    }
+    const lp = rules.lifepaths?.[chosen.stock]?.[chosen.setting]?.[chosen.key];
+      lp?.traits?.forEach(tKey => {
+        if (tKey) eligibleLifepathTraitKeys.add(tKey);
+      });
   });
 
   const currentBurnedLifepathsSet = new Set(character.chosenLifepaths.map(lp => lp.key));
 
   const totalSpentTraitPoints = Object.entries(character.assignedTraits).reduce((sum, [tKey, points]) => {
-    if (character.mandatoryTraitKeys.includes(tKey)) return sum;
+    if (character.mandatoryTraits.includes(tKey)) return sum;
     
     const traitData = rules.traits[tKey];
     if (!traitData) return sum;
@@ -477,23 +477,23 @@ export function useCharacterEngine() {
 
   const [traitSearchQuery, setTraitSearchQuery] = useState("");
 
-  const availableTraitOptions = Object.entries(rules.traits || {})
-    .filter(([tKey, trait]) => {
-      if (!trait || !trait.name) return false;
+  const availableTraitOptions = Object.entries(rules?.traits || {})
+  .filter(([tKey, trait]) => {
+    if (!trait || !trait.name) return false;
 
-      if (character.assignedTraits[tKey] !== undefined) return false;
+    if (character.assignedTraits[tKey] !== undefined) return false;
 
-      if (trait.lifepaths && Array.isArray(trait.lifepaths) && trait.lifepaths.length > 0) {
-        const hasRequiredLP = trait.lifepaths.some(reqLp => currentBurnedLifepathsSet.has(reqLp));
-        if (!hasRequiredLP) return false;
-      }
-      
-      return trait.name.toLowerCase().includes(traitSearchQuery.toLowerCase());
-    })
-    .map(([tKey, trait]) => {
-      const dynamicCost = eligibleLifepathTraitKeys.has(tKey) ? 1 : Number(trait.cost || 0);
-      return { key: tKey, ...trait, dynamicCost };
-    });
+    if (trait.lifepaths && Array.isArray(trait.lifepaths) && trait.lifepaths.length > 0) {
+      const hasRequiredLP = trait.lifepaths.some(reqLp => currentBurnedLifepathsSet.has(reqLp));
+      if (!hasRequiredLP) return false;
+    }
+    
+    return trait.name.toLowerCase().includes(traitSearchQuery.toLowerCase());
+  })
+  .map(([tKey, trait]) => {
+    const dynamicCost = eligibleLifepathTraitKeys?.has(tKey) ? 1 : Number(trait.cost || 0);
+    return { key: tKey, ...trait, dynamicCost };
+  });
 
   const buyTrait = (traitKey) => {
     const traitData = rules.traits[traitKey];
@@ -513,7 +513,7 @@ export function useCharacterEngine() {
   };
 
   const removeTrait = (traitKey) => {
-    if (character.mandatoryTraitKeys.includes(traitKey)) {
+    if (character.mandatoryTraits.includes(traitKey)) {
       alert("Mandatory traits cannot be removed.");
       return;
     }
