@@ -22,5 +22,21 @@
         "trait_points": 3,
         "is_born": false,
         "leads": ["servitude_setting", "soldier_setting", "outcast_setting"]
+    },
+    "boy": {
+        "name": "Boy",
+        "time": 8,
+        "res": 3,
+        "stat_points": { "physical": 0, "mental": 0},
+        "skills": ["sailor_wise", "ship-wise", "captain-wise"],
+        "traits": ["veneer_of_obedience", "curses_like_a_sailor", "sprinter"],
+        "skill_points": 4,
+        "trait_points": 1,
+        "is_born": false,
+        "leads": ["city_setting", "servitude_setting", "soldier_setting", "outcast_setting"],
+        "prereqs": {
+            "exact_index": 1,
+            "note": "Must be taken as the character's second lifepath and can only be chosen once."
+        }
     }
 }
