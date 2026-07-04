@@ -21,7 +21,8 @@ function App() {
       speed: 0,
       power: 0,
       forte: 0
-    }
+    },
+    skillAllocations: {}
   });
 
   useEffect(() => {
@@ -252,64 +253,120 @@ function App() {
 
   // Skill Section
 
-  const openedSkills = {};
-  const validLifepathSkillsSet = new Set();
-
   let totalLifepathSkillPoints = 0;
   let totalGeneralPoints = 0;
-
-  character.chosenLifepaths.forEach(lp => {
-    const points = lp.skill_points || 0;
-
-    if (lp.skills && lp.skills.length === 1 && lp.skills[0] === 'general') {
-      totalGeneralPoints += points;
-    } else {
-      totalLifepathSkillPoints += points;
-    }
-  });
-
+  
+  const autoOpenedSkillsSet = new Set();
+  const availableLifepathSkillsSet = new Set();
 
   character.chosenLifepaths.forEach((lp) => {
-    if (!lp.skills || lp.skills.length === 0) return;
-    const isGeneralPath = lp.skills.length === 1 && lp.skills[0] === 'general';
-    
-    if (!isGeneralPath) {
-      lp.skills.forEach(skillKey => validLifepathSkillsSet.add(skillKey));
+    const points = lp.skill_points || 0;
+    const skillList = lp.skills || [];
+    const isGeneralPath = skillList.length === 1 && skillList[0] === 'general';
+
+    if (isGeneralPath || skillList.length === 0) {
+      totalGeneralPoints += points;
+      return;
     }
 
-    let skillToOpenKey = null;
-    const primarySkillKey = lp.skills[0];
-    const secondarySkillKey = lp.skills[1];
+    totalLifepathSkillPoints += points;
 
-    if (!isGeneralPath) {
-      if (!openedSkills[primarySkillKey]) {
-        skillToOpenKey = primarySkillKey;
-      } else if (secondarySkillKey && !openedSkills[secondarySkillKey]) {
-        skillToOpenKey = secondarySkillKey;
+    skillList.forEach(sk => availableLifepathSkillsSet.add(sk));
+
+
+    let primarySkill = skillList[0];
+    let secondarySkill = skillList[1];
+
+    if (primarySkill && primarySkill !== 'general') {
+      if (!autoOpenedSkillsSet.has(primarySkill)) {
+        autoOpenedSkillsSet.add(primarySkill);
+      } else if (secondarySkill && !autoOpenedSkillsSet.has(secondarySkill)) {
+        autoOpenedSkillsSet.add(secondarySkill);
       }
-    }
-
-    if (skillToOpenKey && rules?.skills?.[skillToOpenKey]) {
-      const skillDef = rules.skills[skillToOpenKey];
-      const roots = skillDef.roots || [];
-      let calculatedExponent = 0;
-
-      if (roots.length === 1) {
-        calculatedExponent = Math.floor((character.assignedStats[roots[0]] || 0) / 2);
-      } else if (roots.length === 2) {
-        const averageRoot = ((character.assignedStats[roots[0]] || 0) + (character.assignedStats[roots[1]] || 0)) / 2;
-        calculatedExponent = Math.floor(averageRoot / 2);
-      }
-
-      openedSkills[skillToOpenKey] = {
-        name: skillDef.name,
-        exponent: calculatedExponent,
-        roots: roots.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join('/')
-      };
     }
   });
 
-  const openedSkillsList = Object.values(openedSkills);
+
+  let spentLifepathPoints = 0;
+  const processedSkillsList = [];
+
+
+  availableLifepathSkillsSet.forEach((skillKey) => {
+    const skillDef = rules?.skills?.[skillKey];
+    if (!skillDef) return;
+
+    const isAutoOpen = autoOpenedSkillsSet.has(skillKey);
+    const allocatedBonus = character.skillAllocations[skillKey] || 0;
+    
+
+    const isOpened = isAutoOpen || allocatedBonus > 0;
+
+    if (!isAutoOpen && allocatedBonus > 0) {
+      spentLifepathPoints += allocatedBonus; 
+    } else if (isAutoOpen) {
+      spentLifepathPoints += allocatedBonus;
+    }
+
+
+    let currentExponent = 0;
+    if (isOpened) {
+      const roots = skillDef.roots || [];
+      let baseExponent = 0;
+
+      if (roots.length === 1) {
+        baseExponent = Math.floor((character.assignedStats[roots[0]] || 0) / 2);
+      } else if (roots.length === 2) {
+        const rootVal1 = character.assignedStats[roots[0]] || 0;
+        const rootVal2 = character.assignedStats[roots[1]] || 0;
+        baseExponent = Math.floor(((rootVal1 + rootVal2) / 2) / 2);
+      }
+
+      currentExponent = baseExponent + (isAutoOpen ? allocatedBonus : (allocatedBonus - 1));
+    }
+
+    processedSkillsList.push({
+      key: skillKey,
+      name: skillDef.name,
+      roots: (skillDef.roots || []).map(r => r.charAt(0).toUpperCase() + r.slice(1)).join('/'),
+      isOpened,
+      isAutoOpen,
+      allocatedBonus,
+      exponent: currentExponent
+    });
+  });
+
+
+  const remainingLifepathSkillPoints = totalLifepathSkillPoints - spentLifepathPoints;
+
+  const adjustSkillPoints = (skillKey, operation) => {
+    const isAutoOpen = autoOpenedSkillsSet.has(skillKey);
+    const currentAllocation = character.skillAllocations[skillKey] || 0;
+
+    if (operation === 'inc') {
+      if (remainingLifepathSkillPoints <= 0) return;
+
+      setCharacter(prev => ({
+        ...prev,
+        skillAllocations: {
+          ...prev.skillAllocations,
+          [skillKey]: currentAllocation + 1
+        }
+      }));
+    } else if (operation === 'dec') {
+
+      if (currentAllocation <= 0) return;
+
+      setCharacter(prev => {
+        const updatedAllocations = { ...prev.skillAllocations };
+        if (currentAllocation - 1 === 0) {
+          delete updatedAllocations[skillKey]; 
+        } else {
+          updatedAllocations[skillKey] = currentAllocation - 1;
+        }
+        return { ...prev, skillAllocations: updatedAllocations };
+      });
+    }
+  };
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -577,61 +634,90 @@ function App() {
           
       )}
 
-      <div style={{ 
-            backgroundColor: 'rgba(255,255,255,0.02)', 
-            border: '1px solid rgba(255,255,255,0.1)', 
-            padding: '20px', 
-            borderRadius: '8px',
-            marginTop: '20px'
-          }}>
+      <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
             <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
               Skills Management
             </h3>
 
-            {/* 🌟 NEW: SKILL POINT WALLET TRACKER DISPLAY */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '20px', 
-              margin: '0 0 20px 0', 
-              padding: '12px', 
-              backgroundColor: 'rgba(0,0,0,0.3)', 
-              borderRadius: '6px',
-              justifyContent: 'center' 
-            }}>
+            <div style={{ display: 'flex', gap: '20px', margin: '0 0 20px 0', padding: '12px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '6px', justifyContent: 'center' }}>
               <div>
                 <span style={{ color: '#aaa', fontSize: '12px', textTransform: 'uppercase', display: 'block' }}>Lifepath Skill Pool</span>
-                <strong style={{ fontSize: '18px', color: '#2ecc71' }}>{totalLifepathSkillPoints} pts</strong>
+                <strong style={{ fontSize: '18px'}}>
+                  {remainingLifepathSkillPoints} / {totalLifepathSkillPoints} pts
+                </strong>
               </div>
               <div style={{ borderLeft: '1px solid #444', paddingLeft: '20px' }}>
                 <span style={{ color: '#aaa', fontSize: '12px', textTransform: 'uppercase', display: 'block' }}>General Skill Pool</span>
-                <strong style={{ fontSize: '18px', color: '#f1c40f' }}>{totalGeneralPoints} pts</strong>
+                <strong style={{ fontSize: '18px'}}>{totalGeneralPoints} pts</strong>
               </div>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#666', marginTop: '-5px', marginBottom: '20px' }}>
-              Skills opened automatically by chronology configuration. Lifepath points can only be allocated to skills provided by your backgrounds.
-            </p>
-
-            {openedSkillsList.length === 0 ? (
+            {processedSkillsList.length === 0 ? (
               <p style={{ color: '#555', fontStyle: 'italic', fontSize: '14px' }}>
-                No skills have been opened by your current lifepath sequence configuration.
+                No skills found in your current lifepath choices.
               </p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                {openedSkillsList.map((skill, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '6px', borderLeft: '4px solid #0070f3' }}>
-                    <div>
-                      <strong style={{ fontSize: '16px' }}>{skill.name}</strong>
-                      <span style={{ display: 'block', fontSize: '11px', color: '#555', marginTop: '2px' }}>
-                        Roots: {skill.roots}
-                      </span>
+                {processedSkillsList.map((skill) => {
+                  const canMinus = skill.allocatedBonus > 0;
+
+                  return (
+                    <div 
+                      key={skill.key} 
+                      style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        padding: '12px 15px', 
+                        backgroundColor: skill.isOpened ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.01)', 
+                        borderRadius: '6px',
+                        borderLeft: skill.isOpened ? '4px solid #444' : '4px solid #aaa',
+                        opacity: skill.isOpened ? 1 : 0.6,
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <div>
+                        <strong style={{ fontSize: '16px', color: skill.isOpened ? '#fff' : '#aaa' }}>
+                          {skill.name}
+                        </strong>
+                        <span style={{ display: 'block', fontSize: '11px', color: '#555', marginTop: '2px' }}>
+                          Roots: {skill.roots} {skill.isAutoOpen && <span style={{ color: '#444', fontStyle: 'italic' }}>(Opened by Lifepath)</span>}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button 
+                            disabled={!canMinus}
+                            onClick={() => adjustSkillPoints(skill.key, 'dec')}
+                            style={{ 
+                              width: '24px', height: '24px', cursor: canMinus ? 'pointer' : 'not-allowed', 
+                              backgroundColor: '#222', color: canMinus ? '#fff' : '#444', border: '1px solid #444', borderRadius: '4px' 
+                            }}
+                          >
+                            -
+                          </button>
+                          <button 
+                            disabled={remainingLifepathSkillPoints <= 0}
+                            onClick={() => adjustSkillPoints(skill.key, 'inc')}
+                            style={{ 
+                              width: '24px', height: '24px', cursor: remainingLifepathSkillPoints > 0 ? 'pointer' : 'not-allowed', 
+                              backgroundColor: '#222', color: remainingLifepathSkillPoints > 0 ? '#fff' : '#444', border: '1px solid #444', borderRadius: '4px' 
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div style={{ textAlign: 'center', minWidth: '40px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#555' }}>
+                            {skill.isOpened ? `B${skill.exponent}` : '---'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#0070f3' }}>B{skill.exponent}</span>
-                      <span style={{ display: 'block', fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>Rank</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
