@@ -22,5 +22,49 @@
         "trait_points": 1,
         "is_born": false,
         "leads": ["villager_setting", "soldier_setting", "servitude_setting"]
+    },
+    "head_of_household": {
+        "name": "House of Household",
+        "time": 15,
+        "res": 20,
+        "stat_points": {"physical": 0, "mental": 1},
+        "skills": ["carpentry", "hunting", "haggling", "almanac"],
+        "traits": [],
+        "skill_points": 8,
+        "trait_points": 2,
+        "is_born": false,
+        "leads": ["villager_setting", "soldier_setting"],
+        "prereqs": {
+            "exclude_index": 1,
+            "note": "May not be taken as your second lifepath."
+        }
+    },
+    "midwife": {
+        "name": "Midwife",
+        "time": 10,
+        "res": 5,
+        "stat_points": {"physical": 0, "mental": 1},
+        "skills": ["animal_husbandry", "herbalism", "midwifery", "omen_wise"],
+        "traits": ["beside_manner"],
+        "skill_points": 7,
+        "trait_points": 2,
+        "is_born": false,
+        "leads": ["villager_setting", "outcast_setting"],
+        "prereqs": {
+            "any_lifepath": ["lady", "farmer", "itinerant_priest"],
+            "note": "Any female gender-specific lifepath (Lady, for example), Farmer or Itinerant Priest."
+        }
+    },
+    "lazy_stayabout": {
+        "name": "Lazy Stayabout",
+        "time": 7,
+        "res": 3,
+        "stat_choice": {"physical": 0, "mental": 0},
+        "skills": ["lazy_wise", "peasent_wise", "wife_wise", "work_wise"],
+        "traits": ["a_little_fat"],
+        "skill_points": 3,
+        "trait_points": 1,
+        "is_born": false,
+        "leads": ["outcast_setting", "servitude_setting", "soldier_setting"]
     }
 }

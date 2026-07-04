@@ -1,4 +1,8 @@
 {
+    "abbey_wise": {"name": "Abbey-wise", "roots": ["perception"]},
+    "accounting": {"name": "Accounting", "roots": ["perception"]},
+    "acting": {"name": "Acting", "roots": ["perception"]},
+    "administration": {"name": "Administration", "roots": ["perception"]},
     "farming": {"name": "Farming", "roots": ["perception"]},
     "mending": {"name": "Mending", "roots": ["perception", "agility"]},
     "animal_husbandry": {"name": "Animal Husbandry", "roots": ["will"]},
@@ -7,8 +11,8 @@
     "sewing": {"name": "Sewing", "roots": ["agility"]},
     "firebuiliding": {"name": "Firebuilding", "roots": ["perception"]},
     "sing": {"name": "Sing", "roots": ["will"]},
-    "slave_deck_wise": {"name": "Slave Deck-wise", "roots": ["will"]},
-    "taskmaster_wise": {"name": "Taskmaster-wise", "roots": ["will"]},
+    "slave_deck_wise": {"name": "Slave Deck-wise", "roots": ["perception"]},
+    "taskmaster_wise": {"name": "Taskmaster-wise", "roots": ["perception"]},
     "seamanship": {"name": "Seamanship", "roots": ["perception"]},
     "knots": {"name": "Knots", "roots": ["perception", "agility"]}
 }

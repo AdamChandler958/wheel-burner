@@ -13,15 +13,23 @@ export default function LifepathSelector({ engine }) {
     lifepathOptions,
     character,
     addLifepathToCharacter,
-    setSelectedLifepathKey
+    setSelectedLifepathKey,
+    validateLifepathSelection
   } = engine;
+
+  const hasSelection = selectedStock && selectedSetting && selectedLifepathKey;
+
+  const selectionCheck = hasSelection 
+    ? validateLifepathSelection(selectedStock, selectedSetting, selectedLifepathKey, character)
+    : { valid: false, errors: [] };
+
+  const showErrorBanner = hasSelection && !selectionCheck.valid && selectionCheck.errors?.length > 0;
 
   return (
     <div style={{ backgroundColor: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '20px' }}>
       <h2 style={{ marginTop: 0 }}>Add Lifepaths</h2>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
         
-        {/* Stock Select */}
         <div style={{ flex: '1', minWidth: '150px' }}>
           <label style={{ display: 'block', textTransform: 'capitalize', fontSize: '12px', color: '#aaa', marginBottom: '4px' }}>Stock</label>
           <select value={selectedStock} onChange={handleStockChange} style={{ width: '100%', padding: '8px' }}>
@@ -32,7 +40,6 @@ export default function LifepathSelector({ engine }) {
           </select>
         </div>
 
-        {/* Setting Select */}
         <div style={{ flex: '1', minWidth: '150px' }}>
           <label style={{ display: 'block', fontSize: '12px', color: '#aaa', marginBottom: '4px' }}>Setting</label>
           <select 
@@ -53,8 +60,6 @@ export default function LifepathSelector({ engine }) {
             })}
           </select>
         </div>
-
-        {/* Lifepath Select */}
         <div style={{ flex: '1', minWidth: '200px' }}>
           <label style={{ display: 'block', fontSize: '12px', color: '#aaa', marginBottom: '4px' }}>Lifepath</label>
           <select 
@@ -83,10 +88,25 @@ export default function LifepathSelector({ engine }) {
         </div>
       </div>
 
+      {showErrorBanner && (
+        <div style={{ 
+          color: '#ff4444', 
+          backgroundColor: '#2a1111', 
+          border: '1px solid #5a1a1a',
+          padding: '12px', 
+          borderRadius: '4px', 
+          marginBottom: '15px', 
+          fontSize: '13px',
+          lineHeight: '1.4'
+        }}>
+          <strong style={{ display: 'block', marginBottom: '4px' }}>Prerequisite Requirements:</strong> 
+          {selectionCheck.errors.join(" ")}
+        </div>
+      )}
+
       <button 
+        disabled={!selectionCheck?.valid}
         onClick={addLifepathToCharacter}
-        disabled={!selectedLifepathKey}
-        style={{ padding: '10px 20px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
       >
         Burn Lifepath
       </button>

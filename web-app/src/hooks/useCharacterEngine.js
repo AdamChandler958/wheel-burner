@@ -252,6 +252,79 @@ export function useCharacterEngine() {
     }
   }
 
+  const PATH_VALIDATORS = {
+    exact_index: (reqIndex, context) => {
+      return context.currentHistory.length === reqIndex;
+    },
+
+
+    any_lifepath: (allowedKeys, context) => {
+      return context.currentHistory.some(lp => allowedKeys.includes(lp.key));
+    },
+
+
+    any_trait: (allowedTraits, context) => {
+      const assignedKeys = Object.keys(context.character.assignedTraits || {});
+      return allowedTraits.some(tKey => assignedKeys.includes(tKey));
+    },
+
+
+    required_setting: (settingKey, context) => {
+      return context.currentHistory.some(lp => lp.setting === settingKey);
+    },
+
+    any_of: (subRulesArray, context) => {
+
+    return subRulesArray.some(subRule => {
+
+      return Object.entries(subRule).every(([ruleType, rulePayload]) => {
+        const validator = PATH_VALIDATORS[ruleType];
+        if (!validator) return false;
+        return validator(rulePayload, context);
+      });
+    });
+  },
+
+  exclude_index: (bannedIndex, context) => {
+    return context.currentHistory.length !== bannedIndex;
+  }
+};
+
+const validateLifepathSelection = (stock, setting, lpKey, characterState) => {
+  const lpData = rules?.lifepaths?.[stock]?.[setting]?.[lpKey];
+  if (!lpData) return { valid: false, errors: ["Lifepath rules definition not found."] };
+  if (!lpData.prereqs) return { valid: true, errors: [] }; 
+
+  const errors = [];
+  const context = {
+    character: characterState,
+    currentHistory: characterState.chosenLifepaths || []
+  };
+
+  Object.entries(lpData.prereqs).forEach(([ruleType, rulePayload]) => {
+
+    if (ruleType === "note") return;
+
+    const validator = PATH_VALIDATORS[ruleType];
+    
+    if (!validator) {
+      console.warn(`Missing engine validator implementation for rule type: "${ruleType}"`);
+      return;
+    }
+
+
+    const passes = validator(rulePayload, context);
+    if (!passes) {
+      errors.push(lpData.prereqs.note || `Fails requirement: ${ruleType}`);
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+};
+
 
 
   let lifepathOptions = [];
@@ -552,6 +625,7 @@ export function useCharacterEngine() {
     removeLifepath,
     handleResolveStatChoice,
     abortPendingLifepath,
+    validateLifepathSelection,
 
     // Aggregated Character Background Information
     totalYears,
