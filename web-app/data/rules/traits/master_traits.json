@@ -1,0 +1,10 @@
+{
+    "hoarding": {"name": "Hoarding", "cost": 1, "type": "Character"},
+    "sea_legs": {"name": "Sea Legs", "cost": 2, "type": "Call-on", "description": "Call-on for Speed when aboard a ship. ALso, this character doesn't get seasick."},
+    "tasting_the_lash": {"name": "Tasting the Lash", "cost": 1, "type": "Die trait", "description": "When another character cracks a whip across their back and gives and order, the player must obey the orders (so long as the orders aren't to 'stick that knofe in your throat' or something similar). They can be driven to attack, to flee, to drop their weapon, fall to their knees or just plain row the boat", "lifepaths": ["galley_slave"]},
+    "eating_maggots": {"name": "Eating maggots", "cost": 1, "type": "Character"},
+    "following_the_beat": {"name": "Following the beat", "cost": 1, "type": "Character"},
+    "iron_stomach": {"name": "Iron Stomach", "cost": 2, "type": "Call-on", "description": "This character can eat nearly anything an not get sick, even while enduring stomach-churning gross-out jokes. Call-on for Forte tests against illness or poison."},
+    "bottomless_stomach": {"name": "Bottomless Stomach", "cost": 2, "type": "Die trait", "description": "Eat and eat and eat. 'Nature's Cruel Joke.' Characters with the Bottomless Stomach trait are at +1 Ob to all Resources tests involving food, drink and meals."},
+    "gnawing_hunger": {"name": "Gnawing Hunger", "cost": 1, "type": "Character"}
+}

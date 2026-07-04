@@ -4,12 +4,14 @@ import path from 'path';
 const lifepathsDir = './data/rules/lifepaths';
 const agesDir = './data/rules/ages';
 const skillDir = './data/rules/skills';
+const traitDir = './data/rules/traits'
 const outputFile = './public/master_rules.json';
 
 const masterRules = {
     lifepaths: {},
     ages: {},
-    skills: {}
+    skills: {},
+    traits: {},
 };
 
 try {
@@ -74,6 +76,23 @@ try {
         console.log('Skills successfully integrated.');
     } else {
         console.warn(`Warning: Skills directory not found at ${skillDir}. Skipping skills compilation.`);
+    }
+
+    if (fs.existsSync(traitDir)) {
+        const traitFiles = fs.readdirSync(traitDir);
+
+        traitFiles.forEach(file => {
+            if (file.endsWith('.json')) {
+                const filePath = path.join(traitDir, file);
+                const rawData = fs.readFileSync(filePath, 'utf8');
+                const parsedData = JSON.parse(rawData);
+
+                masterRules.traits = parsedData;
+            }
+        });
+        console.log('Traits successfully integrated.');
+    } else {
+        console.warn(`Warning: Traits directory not found at ${traitDir}. Skipping traits compilation.`);
     }
 
     fs.writeFileSync(outputFile, JSON.stringify(masterRules, null, 2));

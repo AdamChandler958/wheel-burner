@@ -56,14 +56,38 @@ export function useCharacterEngine() {
       }
     }
 
+    const lpData = rules.lifepaths[selectedStock][selectedSetting][selectedLifepathKey];
+
+    if (lpData.traits && lpData.traits.length > 0) {
+      const firstTraitKey = lpData.traits[0];
+      
+      setCharacter(prev => {
+        const updatedTraits = { ...prev.assignedTraits };
+        const updatedMandatory = [...prev.mandatoryTraitKeys];
+        
+        updatedTraits[firstTraitKey] = 0; 
+        if (!updatedMandatory.includes(firstTraitKey)) {
+          updatedMandatory.push(firstTraitKey);
+        }
+        
+        return {
+          ...prev,
+          assignedTraits: updatedTraits,
+          mandatoryTraitKeys: updatedMandatory
+        };
+      });
+    }
+
     const newPath = {
       stock: selectedStock,
       setting: selectedSetting,
       key: selectedLifepathKey,
       name: lifepathDetails.name,
       time: calculatedTimeCost,
-      skills: lifepathDetails.skills || [], 
+      skills: lifepathDetails.skills || [],
+      traits: lifepathDetails.traits || [],
       skill_points: lifepathDetails.skill_points || 0,
+      trait_points: lifepathDetails.trait_points || 0,
       res: lifepathDetails.res,
       is_born: lifepathDetails.is_born,
       leads: lifepathDetails.leads || [] 
@@ -78,12 +102,31 @@ export function useCharacterEngine() {
       return;
     }
 
-    setCharacter(prev => ({
-      ...prev,
-      chosenLifepaths: [...prev.chosenLifepaths, newPath]
-    }));
-
+    commitLifepathWithTraits(newPath);
     setSelectedLifepathKey('');
+
+  };
+
+  const commitLifepathWithTraits = (newPath) => {
+    setCharacter(prev => {
+      const updatedTraits = { ...prev.assignedTraits };
+      const updatedMandatory = [...prev.mandatoryTraitKeys];
+
+      if (newPath.traits && newPath.traits.length > 0) {
+        const firstTraitKey = newPath.traits[0];
+        updatedTraits[firstTraitKey] = 0; 
+        if (!updatedMandatory.includes(firstTraitKey)) {
+          updatedMandatory.push(firstTraitKey);
+        }
+      }
+
+      return {
+        ...prev,
+        chosenLifepaths: [...prev.chosenLifepaths, newPath],
+        assignedTraits: updatedTraits,
+        mandatoryTraitKeys: updatedMandatory
+      };
+    });
   };
 
   const handleResolveStatChoice = (chosenStat) => {
@@ -126,10 +169,42 @@ export function useCharacterEngine() {
   };
 
   const removeLifepath = (indexToRemove) => {
-    setCharacter(prev => ({
-      ...prev,
-      chosenLifepaths: prev.chosenLifepaths.filter((_, index) => index !== indexToRemove)
-    }));
+    setCharacter(prev => {
+      const updatedLifepaths = prev.chosenLifepaths.filter((_, idx) => idx !== indexToRemove);
+
+      const remainingMandatoryKeys = [];
+      updatedLifepaths.forEach(lp => {
+        if (lp.traits && lp.traits.length > 0) {
+          const firstTraitKey = lp.traits[0];
+          if (!remainingMandatoryKeys.includes(firstTraitKey)) {
+            remainingMandatoryKeys.push(firstTraitKey);
+          }
+        }
+      });
+
+
+      const updatedTraits = { ...prev.assignedTraits };
+
+
+      prev.mandatoryTraitKeys.forEach(oldMandatoryKey => {
+        if (!remainingMandatoryKeys.includes(oldMandatoryKey)) {
+
+          delete updatedTraits[oldMandatoryKey];
+        }
+      });
+
+      
+      remainingMandatoryKeys.forEach(mandatoryKey => {
+        updatedTraits[mandatoryKey] = 0;
+      });
+
+      return {
+        ...prev,
+        chosenLifepaths: updatedLifepaths,
+        assignedTraits: updatedTraits,
+        mandatoryTraitKeys: remainingMandatoryKeys
+      };
+    });
   };
 
   const adjustStatValue = (statName, direction, poolType) => {
@@ -371,6 +446,85 @@ export function useCharacterEngine() {
     }
   };
 
+  // Trait section
+
+  const totalTraitPoints = character.chosenLifepaths.reduce((sum, chosen) => {
+    const lp = rules.lifepaths[chosen.stock][chosen.setting][chosen.key];
+    return sum + (lp.traits_points || 0); 
+    }, 0);
+
+  const eligibleLifepathTraitKeys = new Set();
+  character.chosenLifepaths.forEach(chosen => {
+    const lp = rules.lifepaths[chosen.stock][chosen.setting][chosen.key];
+    if (lp.traits) {
+      lp.traits.forEach(tKey => eligibleLifepathTraitKeys.add(tKey));
+    }
+  });
+
+  const currentBurnedLifepathsSet = new Set(character.chosenLifepaths.map(lp => lp.key));
+
+  const totalSpentTraitPoints = Object.entries(character.assignedTraits).reduce((sum, [tKey, points]) => {
+    if (character.mandatoryTraitKeys.includes(tKey)) return sum;
+    
+    const traitData = rules.traits[tKey];
+    if (!traitData) return sum;
+    
+    const cost = eligibleLifepathTraitKeys.has(tKey) ? 1 : Number(traitData.cost || 0);
+    return sum + cost;
+  }, 0);
+
+  const remainingTraitPoints = totalTraitPoints - totalSpentTraitPoints;
+
+  const [traitSearchQuery, setTraitSearchQuery] = useState("");
+
+  const availableTraitOptions = Object.entries(rules.traits || {})
+    .filter(([tKey, trait]) => {
+      if (!trait || !trait.name) return false;
+
+      if (character.assignedTraits[tKey] !== undefined) return false;
+
+      if (trait.lifepaths && Array.isArray(trait.lifepaths) && trait.lifepaths.length > 0) {
+        const hasRequiredLP = trait.lifepaths.some(reqLp => currentBurnedLifepathsSet.has(reqLp));
+        if (!hasRequiredLP) return false;
+      }
+      
+      return trait.name.toLowerCase().includes(traitSearchQuery.toLowerCase());
+    })
+    .map(([tKey, trait]) => {
+      const dynamicCost = eligibleLifepathTraitKeys.has(tKey) ? 1 : Number(trait.cost || 0);
+      return { key: tKey, ...trait, dynamicCost };
+    });
+
+  const buyTrait = (traitKey) => {
+    const traitData = rules.traits[traitKey];
+    if (!traitData) return;
+
+    const cost = eligibleLifepathTraitKeys.has(traitKey) ? 1 : Number(traitData.cost || 0);
+    if (remainingTraitPoints < cost) {
+      alert("Insufficient Trait Points available!");
+      return;
+    }
+
+    setCharacter(prev => ({
+      ...prev,
+      assignedTraits: { ...prev.assignedTraits, [traitKey]: cost }
+    }));
+    setTraitSearchQuery(""); 
+  };
+
+  const removeTrait = (traitKey) => {
+    if (character.mandatoryTraitKeys.includes(traitKey)) {
+      alert("Mandatory traits cannot be removed.");
+      return;
+    }
+
+    setCharacter(prev => {
+      const updatedTraits = { ...prev.assignedTraits };
+      delete updatedTraits[traitKey];
+      return { ...prev, assignedTraits: updatedTraits };
+    });
+  };
+
   return {
     // Structural System States
     rules,
@@ -432,6 +586,16 @@ export function useCharacterEngine() {
     setSkillSearchQuery,
     selectedSearchSkillKey,
     setSelectedSearchSkillKey,
-    searchedSkillsResults
+    searchedSkillsResults,
+
+    // Trait Management
+    totalTraitPoints,
+    remainingTraitPoints,
+    traitSearchQuery,
+    setTraitSearchQuery,
+    availableTraitOptions,
+    buyTrait,
+    removeTrait,
+    eligibleLifepathTraitKeys
   };
 };

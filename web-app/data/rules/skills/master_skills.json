@@ -6,5 +6,9 @@
     "cooking": {"name": "Cooking", "roots": ["perception"]},
     "sewing": {"name": "Sewing", "roots": ["agility"]},
     "firebuiliding": {"name": "Firebuilding", "roots": ["perception"]},
-    "sing": {"name": "Sing", "roots": ["will"]}
+    "sing": {"name": "Sing", "roots": ["will"]},
+    "slave_deck_wise": {"name": "Slave Deck-wise", "roots": ["will"]},
+    "taskmaster_wise": {"name": "Taskmaster-wise", "roots": ["will"]},
+    "seamanship": {"name": "Seamanship", "roots": ["perception"]},
+    "knots": {"name": "Knots", "roots": ["perception", "agility"]}
 }

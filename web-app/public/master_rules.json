@@ -13,6 +13,7 @@
           "skills": [
             "general"
           ],
+          "traits": [],
           "skill_points": 3,
           "trait_points": 2,
           "is_born": true,
@@ -41,6 +42,9 @@
             "firebuilding",
             "sing"
           ],
+          "traits": [
+            "hoarding"
+          ],
           "skill_points": 8,
           "trait_points": 1,
           "is_born": false,
@@ -63,6 +67,9 @@
           "skills": [
             "general"
           ],
+          "traits": [
+            "sea_legs"
+          ],
           "skill_points": 3,
           "trait_points": 2,
           "is_born": true,
@@ -81,7 +88,19 @@
             "mental": 0
           },
           "skills": [
-            "general"
+            "slave_deck_wise",
+            "taskmaster_wise",
+            "sing",
+            "seamanship",
+            "knots"
+          ],
+          "traits": [
+            "tasting_the_lash",
+            "eating_maggots",
+            "following_the_beat",
+            "iron_stomach",
+            "bottomlesss_stomach",
+            "gnawing_hunger"
           ],
           "skill_points": 3,
           "trait_points": 3,
@@ -108,6 +127,7 @@
           "skills": [
             "general"
           ],
+          "traits": [],
           "is_born": true,
           "leads": [
             "soldier_setting",
@@ -240,6 +260,80 @@
       "roots": [
         "will"
       ]
+    },
+    "slave_deck_wise": {
+      "name": "Slave Deck-wise",
+      "roots": [
+        "will"
+      ]
+    },
+    "taskmaster_wise": {
+      "name": "Taskmaster-wise",
+      "roots": [
+        "will"
+      ]
+    },
+    "seamanship": {
+      "name": "Seamanship",
+      "roots": [
+        "perception"
+      ]
+    },
+    "knots": {
+      "name": "Knots",
+      "roots": [
+        "perception",
+        "agility"
+      ]
+    }
+  },
+  "traits": {
+    "hoarding": {
+      "name": "Hoarding",
+      "cost": 1,
+      "type": "Character"
+    },
+    "sea_legs": {
+      "name": "Sea Legs",
+      "cost": 2,
+      "type": "Call-on",
+      "description": "Call-on for Speed when aboard a ship. ALso, this character doesn't get seasick."
+    },
+    "tasting_the_lash": {
+      "name": "Tasting the Lash",
+      "cost": 1,
+      "type": "Die trait",
+      "description": "When another character cracks a whip across their back and gives and order, the player must obey the orders (so long as the orders aren't to 'stick that knofe in your throat' or something similar). They can be driven to attack, to flee, to drop their weapon, fall to their knees or just plain row the boat",
+      "lifepaths": [
+        "galley_slave"
+      ]
+    },
+    "eating_maggots": {
+      "name": "Eating maggots",
+      "cost": 1,
+      "type": "Character"
+    },
+    "following_the_beat": {
+      "name": "Following the beat",
+      "cost": 1,
+      "type": "Character"
+    },
+    "iron_stomach": {
+      "name": "Iron Stomach",
+      "cost": 2,
+      "type": "Call-on",
+      "description": "This character can eat nearly anything an not get sick, even while enduring stomach-churning gross-out jokes. Call-on for Forte tests against illness or poison."
+    },
+    "bottomless_stomach": {
+      "name": "Bottomless Stomach",
+      "cost": 2,
+      "type": "Die trait",
+      "description": "Eat and eat and eat. 'Nature's Cruel Joke.' Characters with the Bottomless Stomach trait are at +1 Ob to all Resources tests involving food, drink and meals."
+    },
+    "gnawing_hunger": {
+      "name": "Gnawing Hunger",
+      "cost": 1,
+      "type": "Character"
     }
   }
 }
