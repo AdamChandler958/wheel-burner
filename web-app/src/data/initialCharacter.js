@@ -9,5 +9,7 @@ export const initialCharacter = {
         power: 0,
         forte: 0
     },
-    skillAllocations: {}
+    skillAllocations: {},
+    assignedTraits: {},
+    mandatoryTraits: []
 };

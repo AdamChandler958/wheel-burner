@@ -8,6 +8,7 @@
             "amount": -1
         },
         "skills": ["general"],
+        "traits": [],
         "is_born": true,
         "leads": ["soldier_setting", "outcast_setting"]
     }
