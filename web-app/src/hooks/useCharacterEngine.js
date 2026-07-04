@@ -5,6 +5,7 @@ import { validateLifepathSelection, validateSkillSelection } from "../utils/vali
 import { calculateBaseStatPools, calculateDerivedStats, getSkillBaseExponent, processSkillPointsAndSets } from "../data/characterDerivations";
 import { useStatSubEngine } from "./useStatsEngine";
 import { useSkillSubEngine } from "./useSkillsEngine";
+import { useTraitSubEngine } from "./useTraitsEngine";
 
 export function useCharacterEngine() {
   const [rules, setRules] = useState(null);
@@ -217,8 +218,9 @@ export function useCharacterEngine() {
 
   const subEngineContext = { rules, character, setCharacter, selectedStock };
 
-  const statsEngine = useStatSubEngine({ rules, character, setCharacter, selectedStock });
+  const statsEngine = useStatSubEngine(subEngineContext);
   const skillsEngine = useSkillSubEngine(subEngineContext);
+  const traitsEngine = useTraitSubEngine(subEngineContext);
 
   const { totalYears } = statsEngine;
 
@@ -262,84 +264,6 @@ export function useCharacterEngine() {
 
   const { remainingMental, remainingPhysical } = statsEngine;
 
-  // Trait section
-
-  const totalTraitPoints = character.chosenLifepaths.reduce((total, chosen) => {
-
-    const lpMasterData = rules?.lifepaths?.[chosen.stock]?.[chosen.setting]?.[chosen.key];
-    
-    const pointsFromLP = Number(lpMasterData?.trait_points || 0);
-    
-    return total + pointsFromLP;
-  }, 0);
-
-  const eligibleLifepathTraitKeys = new Set();
-  character.chosenLifepaths.forEach(chosen => {
-    const lp = rules.lifepaths?.[chosen.stock]?.[chosen.setting]?.[chosen.key];
-      lp?.traits?.forEach(tKey => {
-        if (tKey) eligibleLifepathTraitKeys.add(tKey);
-      });
-  });
-
-  const currentBurnedLifepathsSet = new Set(character.chosenLifepaths.map(lp => lp.key));
-
-  const spentTraitPoints = Object.entries(character.assignedTraits).reduce((total, [tKey, cost]) => {
-    const isMandatory = character.mandatoryTraits?.includes(tKey);
-    if (isMandatory) return total;
-
-    return total + Number(cost || 0);
-  }, 0);
-
-  const remainingTraitPoints = totalTraitPoints - spentTraitPoints;
-
-  const availableTraitOptions = Object.entries(rules?.traits || {})
-  .filter(([tKey, trait]) => {
-    if (!trait || !trait.name) return false;
-
-    if (character.assignedTraits[tKey] !== undefined) return false;
-
-    if (trait.lifepaths && Array.isArray(trait.lifepaths) && trait.lifepaths.length > 0) {
-      const hasRequiredLP = trait.lifepaths.some(reqLp => currentBurnedLifepathsSet.has(reqLp));
-      if (!hasRequiredLP) return false;
-    }
-    
-    return trait.name.toLowerCase().includes(traitSearchQuery.toLowerCase());
-  })
-  .map(([tKey, trait]) => {
-    const dynamicCost = eligibleLifepathTraitKeys?.has(tKey) ? 1 : Number(trait.cost || 0);
-    return { key: tKey, ...trait, dynamicCost };
-  });
-
-  const buyTrait = (traitKey) => {
-    const traitData = rules.traits[traitKey];
-    if (!traitData) return;
-
-    const cost = eligibleLifepathTraitKeys.has(traitKey) ? 1 : Number(traitData.cost || 0);
-    if (remainingTraitPoints < cost) {
-      alert("Insufficient Trait Points available!");
-      return;
-    }
-
-    setCharacter(prev => ({
-      ...prev,
-      assignedTraits: { ...prev.assignedTraits, [traitKey]: cost }
-    }));
-    setTraitSearchQuery(""); 
-  };
-
-  const removeTrait = (traitKey) => {
-    if (character.mandatoryTraits.includes(traitKey)) {
-      alert("Mandatory traits cannot be removed.");
-      return;
-    }
-
-    setCharacter(prev => {
-      const updatedTraits = { ...prev.assignedTraits };
-      delete updatedTraits[traitKey];
-      return { ...prev, assignedTraits: updatedTraits };
-    });
-  };
-
   const handleValidateLifepath = (stock, setting, lpKey, characterState) => {
     return validateLifepathSelection(rules, stock, setting, lpKey, characterState);
   };
@@ -372,21 +296,9 @@ export function useCharacterEngine() {
     validateLifepathSelection: (stock, setting, lpKey, state) => validateLifepathSelection(rules, stock, setting, lpKey, state),
     totalResources,
     setSelectedLifepathKey,
-
-
-    // Trait Management
-    totalTraitPoints,
-    remainingTraitPoints,
-    traitSearchQuery,
-    setTraitSearchQuery,
-    availableTraitOptions,
-    buyTrait,
-    removeTrait,
-    eligibleLifepathTraitKeys,
-
-
     ...statsEngine,
-    ...skillsEngine
+    ...skillsEngine,
+    ...traitsEngine
   };
 };
 
