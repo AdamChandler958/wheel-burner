@@ -16,8 +16,11 @@ export default function SkillAllocation({ engine }) {
         setSelectedSearchSkillKey,
         searchedSkillsResults,
         adjustSkillPoints,
-        availableLifepathSkillsSet
+        availableLifepathSkillsSet,
+        isFirstLifepath
     } = engine;
+
+    if (isFirstLifepath) return null;
 
     return (
         <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>

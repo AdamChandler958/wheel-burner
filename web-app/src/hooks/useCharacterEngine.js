@@ -391,6 +391,7 @@ export function useCharacterEngine() {
 
     // Core Lifepath Sheet Modification Triggers
     character,
+    isFirstLifepath,
     setCharacter,
     addLifepathToCharacter,
     removeLifepath,
