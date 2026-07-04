@@ -448,10 +448,14 @@ export function useCharacterEngine() {
 
   // Trait section
 
-  const totalTraitPoints = character.chosenLifepaths.reduce((sum, chosen) => {
-    const lp = rules.lifepaths[chosen.stock][chosen.setting][chosen.key];
-    return sum + (lp.traits_points || 0); 
-    }, 0);
+  const totalTraitPoints = character.chosenLifepaths.reduce((total, chosen) => {
+
+    const lpMasterData = rules?.lifepaths?.[chosen.stock]?.[chosen.setting]?.[chosen.key];
+    
+    const pointsFromLP = Number(lpMasterData?.trait_points || 0);
+    
+    return total + pointsFromLP;
+  }, 0);
 
   const eligibleLifepathTraitKeys = new Set();
   character.chosenLifepaths.forEach(chosen => {
@@ -463,17 +467,14 @@ export function useCharacterEngine() {
 
   const currentBurnedLifepathsSet = new Set(character.chosenLifepaths.map(lp => lp.key));
 
-  const totalSpentTraitPoints = Object.entries(character.assignedTraits).reduce((sum, [tKey, points]) => {
-    if (character.mandatoryTraits.includes(tKey)) return sum;
-    
-    const traitData = rules.traits[tKey];
-    if (!traitData) return sum;
-    
-    const cost = eligibleLifepathTraitKeys.has(tKey) ? 1 : Number(traitData.cost || 0);
-    return sum + cost;
+  const spentTraitPoints = Object.entries(character.assignedTraits).reduce((total, [tKey, cost]) => {
+    const isMandatory = character.mandatoryTraits?.includes(tKey);
+    if (isMandatory) return total;
+
+    return total + Number(cost || 0);
   }, 0);
 
-  const remainingTraitPoints = totalTraitPoints - totalSpentTraitPoints;
+  const remainingTraitPoints = totalTraitPoints - spentTraitPoints;
 
   const [traitSearchQuery, setTraitSearchQuery] = useState("");
 

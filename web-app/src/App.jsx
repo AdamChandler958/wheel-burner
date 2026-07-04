@@ -6,6 +6,7 @@ import LifepathChronology from "./components/LifepathChronology";
 import AttributeSelection from "./components/AttributeSelection";
 import SkillAllocation from "./components/SkillAllocation";
 import PendingLifepath from "./components/PendingLifepath";
+import TraitManagement from "./components/TraitManagement";
 
 function App() {
   const engine = useCharacterEngine();
@@ -34,6 +35,8 @@ function App() {
       <AttributeSelection engine={engine} />
 
       <SkillAllocation engine={engine} />
+
+      <TraitManagement engine={engine}/>
 
       <PendingLifepath engine={engine} />
     </div>
