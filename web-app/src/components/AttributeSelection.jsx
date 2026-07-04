@@ -45,7 +45,6 @@ export default function AttributeSelection({ engine }) {
         marginTop: '25px',
         marginBottom: '30px'
       }}> 
-        {/* Assigned Stats Column */}
         <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
             Assigned Stats
@@ -95,7 +94,6 @@ export default function AttributeSelection({ engine }) {
           })}
         </div>
 
-        {/* Calculated Attributes Column */}
         <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
             Calculated Attributes
