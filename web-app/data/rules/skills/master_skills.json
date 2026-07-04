@@ -1,0 +1,10 @@
+{
+    "farming": {"name": "Farming", "roots": ["perception"]},
+    "mending": {"name": "Mending", "roots": ["perception", "agility"]},
+    "animal_husbandry": {"name": "Animal Husbandry", "roots": ["will"]},
+    "weaving": {"name": "Weaving", "roots": ["perception", "agility"]},
+    "cooking": {"name": "Cooking", "roots": ["perception"]},
+    "sewing": {"name": "Sewing", "roots": ["agility"]},
+    "firebuiliding": {"name": "Firebuilding", "roots": ["perception"]},
+    "sing": {"name": "Sing", "roots": ["will"]}
+}
