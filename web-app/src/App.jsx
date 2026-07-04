@@ -10,6 +10,9 @@ function App() {
 
   const [pendingLifepath, setPendingLifepath] = useState(null);
 
+  const [skillSearchQuery, setSkillSearchQuery] = useState("");
+  const [selectedSearchSkillKey, setSelectedSearchSkillKey] = useState("");
+
 
   const [character, setCharacter] = useState({
     name: "New Character",
@@ -270,9 +273,7 @@ function App() {
     }
 
     totalLifepathSkillPoints += points;
-
     skillList.forEach(sk => availableLifepathSkillsSet.add(sk));
-
 
     let primarySkill = skillList[0];
     let secondarySkill = skillList[1];
@@ -286,45 +287,51 @@ function App() {
     }
   });
 
-
   let spentLifepathPoints = 0;
-  const processedSkillsList = [];
+  let spentGeneralPoints = 0;
+  const processedLifepathSkills = [];
+  const processedGlobalSkills = [];
 
+  const getSkillBaseExponent = (roots = []) => {
+    if (roots.length === 1) {
+      return Math.floor((character.assignedStats[roots[0]] || 0) / 2);
+    } else if (roots.length === 2) {
+      const v1 = character.assignedStats[roots[0]] || 0;
+      const v2 = character.assignedStats[roots[1]] || 0;
+      return Math.floor(((v1 + v2) / 2) / 2);
+    }
+    return 0;
+  };
 
-  availableLifepathSkillsSet.forEach((skillKey) => {
-    const skillDef = rules?.skills?.[skillKey];
-    if (!skillDef) return;
+  Object.entries(character.skillAllocations).forEach(([skillKey, allocatedBonus]) => {
+    if (allocatedBonus <= 0) return;
 
+    const isLifepathSkill = availableLifepathSkillsSet.has(skillKey);
+
+    if (isLifepathSkill) {
+      spentLifepathPoints += allocatedBonus;
+    } else {
+      spentGeneralPoints += allocatedBonus;
+    }
+  });
+
+  const remainingLifepathSkillPoints = totalLifepathSkillPoints - spentLifepathPoints;
+  const remainingGeneralPoints = totalGeneralPoints - spentGeneralPoints;
+
+  Object.keys(rules?.skills || {}).forEach((skillKey) => {
+    const skillDef = rules.skills[skillKey];
+    const isLifepathSkill = availableLifepathSkillsSet.has(skillKey);
     const isAutoOpen = autoOpenedSkillsSet.has(skillKey);
     const allocatedBonus = character.skillAllocations[skillKey] || 0;
-    
-
     const isOpened = isAutoOpen || allocatedBonus > 0;
-
-    if (!isAutoOpen && allocatedBonus > 0) {
-      spentLifepathPoints += allocatedBonus; 
-    } else if (isAutoOpen) {
-      spentLifepathPoints += allocatedBonus;
-    }
-
 
     let currentExponent = 0;
     if (isOpened) {
-      const roots = skillDef.roots || [];
-      let baseExponent = 0;
-
-      if (roots.length === 1) {
-        baseExponent = Math.floor((character.assignedStats[roots[0]] || 0) / 2);
-      } else if (roots.length === 2) {
-        const rootVal1 = character.assignedStats[roots[0]] || 0;
-        const rootVal2 = character.assignedStats[roots[1]] || 0;
-        baseExponent = Math.floor(((rootVal1 + rootVal2) / 2) / 2);
-      }
-
-      currentExponent = baseExponent + (isAutoOpen ? allocatedBonus : (allocatedBonus - 1));
+      const base = getSkillBaseExponent(skillDef.roots);
+      currentExponent = base + (isAutoOpen ? allocatedBonus : (allocatedBonus - 1));
     }
 
-    processedSkillsList.push({
+    const payload = {
       key: skillKey,
       name: skillDef.name,
       roots: (skillDef.roots || []).map(r => r.charAt(0).toUpperCase() + r.slice(1)).join('/'),
@@ -332,38 +339,48 @@ function App() {
       isAutoOpen,
       allocatedBonus,
       exponent: currentExponent
-    });
+    };
+
+    if (isLifepathSkill) {
+      processedLifepathSkills.push(payload);
+    } else if (allocatedBonus > 0) {
+      processedGlobalSkills.push(payload);
+    }
   });
 
-
-  const remainingLifepathSkillPoints = totalLifepathSkillPoints - spentLifepathPoints;
+  const searchedSkillsResults = Object.entries(rules?.skills || {})
+    .filter(([key, def]) => {
+      if (availableLifepathSkillsSet.has(key)) return false; 
+      if (character.skillAllocations[key] > 0) return false; 
+      if (!skillSearchQuery.trim()) return false;            
+      
+      return def.name.toLowerCase().includes(skillSearchQuery.toLowerCase());
+    })
+    .map(([key, def]) => ({ key, ...def }));
 
   const adjustSkillPoints = (skillKey, operation) => {
-    const isAutoOpen = autoOpenedSkillsSet.has(skillKey);
+    const isLifepathSkill = availableLifepathSkillsSet.has(skillKey);
     const currentAllocation = character.skillAllocations[skillKey] || 0;
 
     if (operation === 'inc') {
-      if (remainingLifepathSkillPoints <= 0) return;
+      if (isLifepathSkill && remainingLifepathSkillPoints <= 0) return;
+      if (!isLifepathSkill && remainingGeneralPoints <= 0) return;
 
       setCharacter(prev => ({
         ...prev,
-        skillAllocations: {
-          ...prev.skillAllocations,
-          [skillKey]: currentAllocation + 1
-        }
+        skillAllocations: { ...prev.skillAllocations, [skillKey]: currentAllocation + 1 }
       }));
     } else if (operation === 'dec') {
-
       if (currentAllocation <= 0) return;
 
       setCharacter(prev => {
-        const updatedAllocations = { ...prev.skillAllocations };
+        const updated = { ...prev.skillAllocations };
         if (currentAllocation - 1 === 0) {
-          delete updatedAllocations[skillKey]; 
+          delete updated[skillKey];
         } else {
-          updatedAllocations[skillKey] = currentAllocation - 1;
+          updated[skillKey] = currentAllocation - 1;
         }
-        return { ...prev, skillAllocations: updatedAllocations };
+        return { ...prev, skillAllocations: updated };
       });
     }
   };
@@ -648,18 +665,126 @@ function App() {
               </div>
               <div style={{ borderLeft: '1px solid #444', paddingLeft: '20px' }}>
                 <span style={{ color: '#aaa', fontSize: '12px', textTransform: 'uppercase', display: 'block' }}>General Skill Pool</span>
-                <strong style={{ fontSize: '18px'}}>{totalGeneralPoints} pts</strong>
+                <strong style={{ fontSize: '18px'}}>{remainingGeneralPoints} / {totalGeneralPoints} pts</strong>
               </div>
             </div>
 
-            {processedSkillsList.length === 0 ? (
+            <div style={{ 
+              marginBottom: '30px', 
+              padding: '15px', 
+              backgroundColor: 'rgba(255,255,255,0.01)', 
+              border: '1px solid rgba(255,255,255,0.05)', 
+              borderRadius: '6px' 
+            }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#ccc', marginBottom: '8px' }}>
+                Open General Skills from Rulebook Registry
+              </label>
+              
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <input 
+                    type="text"
+                    placeholder="Type to search skills... (e.g., Mending, Sewing)"
+                    value={skillSearchQuery}
+                    onChange={(e) => {
+                      setSkillSearchQuery(e.target.value);
+                      setSelectedSearchSkillKey(""); 
+                    }}
+                    style={{ 
+                      width: '100%', 
+                      padding: '10px 12px', 
+                      backgroundColor: '#111', 
+                      border: '1px solid #444', 
+                      borderRadius: '6px', 
+                      color: '#fff', 
+                      boxSizing: 'border-box' 
+                    }}
+                  />
+
+                  {searchedSkillsResults.length > 0 && (
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '100%', 
+                      left: 0, 
+                      right: 0, 
+                      backgroundColor: '#151515', 
+                      border: '1px solid #333', 
+                      borderRadius: '0 0 6px 6px', 
+                      maxHeight: '180px', 
+                      overflowY: 'auto', 
+                      zIndex: 10,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                    }}>
+                      {searchedSkillsResults.map((sk) => {
+                        const isCurrentlySelected = selectedSearchSkillKey === sk.key;
+                        return (
+                          <div 
+                            key={sk.key} 
+                            onClick={() => {
+                              setSelectedSearchSkillKey(sk.key);
+                              setSkillSearchQuery(sk.name); 
+                            }}
+                            style={{ 
+                              padding: '10px 15px', 
+                              cursor: 'pointer', 
+                              backgroundColor: isCurrentlySelected ? '#0070f3' : 'transparent',
+                              color: isCurrentlySelected ? '#fff' : '#aaa',
+                              borderBottom: '1px solid #222',
+                              display: 'flex',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <span style={{ fontWeight: 'bold' }}>{sk.name}</span>
+                            <span style={{ fontSize: '10px', opacity: 0.6 }}>Roots: {(sk.roots || []).join('/')}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  disabled={!selectedSearchSkillKey || remainingGeneralPoints <= 0}
+                  onClick={() => {
+                    adjustSkillPoints(selectedSearchSkillKey, 'inc');
+                    setSkillSearchQuery("");
+                    setSelectedSearchSkillKey("");
+                  }}
+                  style={{ 
+                    padding: '0 20px', 
+                    backgroundColor: (selectedSearchSkillKey && remainingGeneralPoints > 0) ? '#0070f3' : '#333', 
+                    color: '#000', 
+                    fontWeight: 'bold', 
+                    border: 'none', 
+                    borderRadius: '6px', 
+                    cursor: (selectedSearchSkillKey && remainingGeneralPoints > 0) ? 'pointer' : 'not-allowed',
+                    fontSize: '13px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Add Skill
+                </button>
+              </div>
+
+              {selectedSearchSkillKey && remainingGeneralPoints <= 0 && (
+                <p style={{ color: '#ff4d4d', fontSize: '12px', margin: '8px 0 0 0' }}>
+                  Insufficient General Skill Points to open this skill.
+                </p>
+              )}
+            </div>
+
+            {processedLifepathSkills.length + processedGlobalSkills.length === 0 ? (
               <p style={{ color: '#555', fontStyle: 'italic', fontSize: '14px' }}>
                 No skills found in your current lifepath choices.
               </p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                {processedSkillsList.map((skill) => {
+                {[...processedLifepathSkills, ...processedGlobalSkills].map((skill) => {
                   const canMinus = skill.allocatedBonus > 0;
+                  const isGeneralChoice = !availableLifepathSkillsSet.has(skill.key);
+                  const canPlus = isGeneralChoice 
+                    ? remainingGeneralPoints > 0 
+                    : remainingLifepathSkillPoints > 0;
 
                   return (
                     <div 
@@ -698,7 +823,7 @@ function App() {
                             -
                           </button>
                           <button 
-                            disabled={remainingLifepathSkillPoints <= 0}
+                            disabled={!canPlus}
                             onClick={() => adjustSkillPoints(skill.key, 'inc')}
                             style={{ 
                               width: '24px', height: '24px', cursor: remainingLifepathSkillPoints > 0 ? 'pointer' : 'not-allowed', 
