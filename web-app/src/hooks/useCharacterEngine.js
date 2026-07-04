@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { initialCharacter } from '../data/initialCharacter';
 
 export function useCharacterEngine() {
-    const [rules, setRules] = useState(null);
+  const [rules, setRules] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const [isFocused, setIsFocused] = useState(false);
+
   const [selectedStock, setSelectedStock] = useState('');
   const [selectedSetting, setSelectedSetting] = useState('');
   const [selectedLifepathKey, setSelectedLifepathKey] = useState('');
@@ -16,6 +17,7 @@ export function useCharacterEngine() {
 
 
   const [character, setCharacter] = useState(initialCharacter);
+
 
   useEffect(() => {
     fetch('/master_rules.json')
@@ -325,6 +327,51 @@ const validateLifepathSelection = (stock, setting, lpKey, characterState) => {
   };
 };
 
+const SKILL_VALIDATORS = {
+  required_stock: (allowedStock, context) => {
+    return context.character.stock === allowedStock;
+  },
+
+  required_setting: (settingKey, context) => {
+    return context.currentHistory.some(lp => lp.setting === settingKey);
+  }
+};
+
+const validateSkillSelection = (skillKey, characterState, gmOverride = false) => {
+  if (gmOverride) return { valid: true, errors: [] };
+
+  const skillData = rules?.skills?.[skillKey];
+  if (!skillData) return { valid: false, errors: ["Skill rules definition not found."] };
+  if (!skillData.prereqs) return { valid: true, errors: [] }; 
+
+  const errors = [];
+  const context = {
+    character: characterState,
+    currentHistory: characterState.chosenLifepaths || []
+  };
+
+
+  Object.entries(skillData.prereqs).forEach(([ruleType, rulePayload]) => {
+    if (ruleType === "note") return;
+
+    const validator = SKILL_VALIDATORS[ruleType];
+    if (!validator) {
+      console.warn(`Missing engine validator implementation for skill rule: "${ruleType}"`);
+      return;
+    }
+
+    const passes = validator(rulePayload, context);
+    if (!passes) {
+      errors.push(skillData.prereqs.note || `Fails skill requirement: ${ruleType}`);
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+};
+
 
 
   let lifepathOptions = [];
@@ -603,6 +650,8 @@ const validateLifepathSelection = (stock, setting, lpKey, characterState) => {
     // Structural System States
     rules,
     loading,
+    isFocused,
+    setIsFocused,
 
     // Form/Selection Selections & Handlers
     selectedStock,
@@ -654,6 +703,7 @@ const validateLifepathSelection = (stock, setting, lpKey, characterState) => {
     availableLifepathSkillsSet,
     adjustSkillPoints,
     setSelectedLifepathKey,
+    validateSkillSelection,
     
 
     // Skill Lookup/Search Utilities

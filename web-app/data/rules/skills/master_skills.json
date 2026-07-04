@@ -3,6 +3,7 @@
     "accounting": {"name": "Accounting", "roots": ["perception"]},
     "acting": {"name": "Acting", "roots": ["perception"]},
     "administration": {"name": "Administration", "roots": ["perception"]},
+    "ages_of_the_etharch": {"name": "Ages of the Etharch", "roots": ["will", "perception"], "prereqs": {"required_stock": "elf", "note": "This skill is an exclusive Elven art and requires the Elf sotck."}},
     "farming": {"name": "Farming", "roots": ["perception"]},
     "mending": {"name": "Mending", "roots": ["perception", "agility"]},
     "animal_husbandry": {"name": "Animal Husbandry", "roots": ["will"]},

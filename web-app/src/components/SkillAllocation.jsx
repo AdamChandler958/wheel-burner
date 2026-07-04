@@ -1,26 +1,38 @@
 import React from "react";
 
 export default function SkillAllocation({ engine }) {
-    const {
-        rules,
-        character,
-        processedLifepathSkills,
-        processedGlobalSkills,
-        remainingLifepathSkillPoints,
-        totalLifepathSkillPoints,
-        remainingGeneralPoints,
-        totalGeneralPoints,
-        skillSearchQuery,
-        setSkillSearchQuery,
-        selectedSearchSkillKey,
-        setSelectedSearchSkillKey,
-        searchedSkillsResults,
-        adjustSkillPoints,
-        availableLifepathSkillsSet,
-        isFirstLifepath
+
+  const {
+      rules,
+      character,
+      isFocused,
+      setIsFocused,
+      processedLifepathSkills,
+      processedGlobalSkills,
+      remainingLifepathSkillPoints,
+      totalLifepathSkillPoints,
+      remainingGeneralPoints,
+      totalGeneralPoints,
+      skillSearchQuery,
+      setSkillSearchQuery,
+      selectedSearchSkillKey,
+      setSelectedSearchSkillKey,
+      searchedSkillsResults,
+      adjustSkillPoints,
+      availableLifepathSkillsSet,
+      isFirstLifepath,
+      validateSkillSelection
     } = engine;
 
     if (isFirstLifepath) return null;
+
+    const hasSkillSelection = selectedSearchSkillKey;
+
+    const skillCheck = hasSkillSelection
+      ? validateSkillSelection(selectedSearchSkillKey, character, character.gmOverrideActive)
+      : {valid: false, errors: []};
+
+    const showSkillError = hasSkillSelection && !skillCheck.valid && skillCheck.errors?.length >0;
 
     return (
         <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
@@ -52,12 +64,17 @@ export default function SkillAllocation({ engine }) {
                 Open General Skills from Rulebook Registry
               </label>
               
-              <div style={{ display: 'flex', gap: '10px' }}>
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
                   <input 
                     type="text"
                     placeholder="Type to search skills... (e.g., Mending, Sewing)"
                     value={skillSearchQuery}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                      setTimeout(() => setIsFocused(false), 200);
+                    }}
                     onChange={(e) => {
                       setSkillSearchQuery(e.target.value);
                       setSelectedSearchSkillKey(""); 
@@ -73,7 +90,7 @@ export default function SkillAllocation({ engine }) {
                     }}
                   />
 
-                  {searchedSkillsResults.length > 0 && (
+                 {isFocused && searchedSkillsResults.length > 0 && (
                     <div style={{ 
                       position: 'absolute', 
                       top: '100%', 
@@ -113,30 +130,45 @@ export default function SkillAllocation({ engine }) {
                       })}
                     </div>
                   )}
-                </div>
+                </div> 
 
-                <button
-                  disabled={!selectedSearchSkillKey || remainingGeneralPoints <= 0}
+                <button 
+                  disabled={!skillCheck.valid}
                   onClick={() => {
                     adjustSkillPoints(selectedSearchSkillKey, 'inc');
                     setSkillSearchQuery("");
                     setSelectedSearchSkillKey("");
                   }}
-                  style={{ 
-                    padding: '0 20px', 
-                    backgroundColor: (selectedSearchSkillKey && remainingGeneralPoints > 0) ? '#0070f3' : '#333', 
-                    color: '#000', 
-                    fontWeight: 'bold', 
-                    border: 'none', 
-                    borderRadius: '6px', 
-                    cursor: (selectedSearchSkillKey && remainingGeneralPoints > 0) ? 'pointer' : 'not-allowed',
-                    fontSize: '13px',
-                    transition: 'all 0.2s ease'
+                  style={{
+                    backgroundColor: skillCheck.valid ? '#0070f3' : '#222',
+                    color: skillCheck.valid ? '#fff' : '#555',
+                    cursor: skillCheck.valid ? 'pointer' : 'not-allowed',
+                    border: '1px solid #333',
+                    padding: '10px 20px',
+                    borderRadius: '4px',
+                    height: '38px', 
+                    boxSizing: 'border-box'
                   }}
                 >
                   Add Skill
                 </button>
-              </div>
+              </div> 
+
+              {showSkillError && (
+                <div style={{ 
+                  color: '#ff4444', 
+                  backgroundColor: '#2a1111', 
+                  border: '1px solid #5a1a1a',
+                  padding: '12px', 
+                  borderRadius: '4px', 
+                  marginTop: '12px', 
+                  fontSize: '13px',
+                  lineHeight: '1.4'
+                }}>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>Skill Restriction:</strong>
+                  {skillCheck.errors.join(" ")}
+                </div>
+              )}
 
               {selectedSearchSkillKey && remainingGeneralPoints <= 0 && (
                 <p style={{ color: '#ff4d4d', fontSize: '12px', margin: '8px 0 0 0' }}>
