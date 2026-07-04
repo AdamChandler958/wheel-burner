@@ -15,6 +15,7 @@ export function useCharacterEngine() {
   const [skillSearchQuery, setSkillSearchQuery] = useState("");
   const [selectedSearchSkillKey, setSelectedSearchSkillKey] = useState("");
 
+  const [traitSearchQuery, setTraitSearchQuery] = useState("");
 
   const [character, setCharacter] = useState(initialCharacter);
 
@@ -595,8 +596,6 @@ const validateSkillSelection = (skillKey, characterState, gmOverride = false) =>
   }, 0);
 
   const remainingTraitPoints = totalTraitPoints - spentTraitPoints;
-
-  const [traitSearchQuery, setTraitSearchQuery] = useState("");
 
   const availableTraitOptions = Object.entries(rules?.traits || {})
   .filter(([tKey, trait]) => {
