@@ -6,7 +6,8 @@ export default function LifepathChronology({ engine }) {
         totalResources,
         finalMentalPool,
         finalPhysicalPool,
-        character
+        character,
+        removeLifepath
     } = engine;
     return (
         <div style={{ 

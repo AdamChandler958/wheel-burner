@@ -32,9 +32,8 @@ export default function TraitManagement({ engine }) {
   });
 
   return (
-    <div style={{ marginTop: '50px', borderTop: '1px solid #333', paddingTop: '30px' }}>
-      
-
+    <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+    
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -49,9 +48,11 @@ export default function TraitManagement({ engine }) {
           color: '#aaa', 
           letterSpacing: '0.5px' 
         }}>
-          Trait Points Remaining: <strong style={{ color: '#aaa', fontSize: '18px', marginLeft: '6px' }}>{remainingTraitPoints}</strong> <span style={{ color: '#666' }}>/ {totalTraitPoints}</span>
+          Trait Points Remaining: <span style={{ color: '#aaa', fontSize: '18px', marginLeft: '6px' }}>{remainingTraitPoints}</span> <span style={{ color: '#666', fontSize: '18px'}}>/ {totalTraitPoints}</span>
         </span>
       </div>
+
+      <hr style={{ margin: '30px 0', opacity: 0.2 }} />
 
       <div style={{ marginBottom: '30px', position: 'relative' }}>
         <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', fontSize: '13px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
