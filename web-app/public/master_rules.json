@@ -297,7 +297,7 @@
       "name": "Sea Legs",
       "cost": 2,
       "type": "Call-on",
-      "description": "Call-on for Speed when aboard a ship. ALso, this character doesn't get seasick."
+      "description": "Call-on for Speed when aboard a ship. Also, this character doesn't get seasick."
     },
     "tasting_the_lash": {
       "name": "Tasting the Lash",
@@ -322,7 +322,7 @@
       "name": "Iron Stomach",
       "cost": 2,
       "type": "Call-on",
-      "description": "This character can eat nearly anything an not get sick, even while enduring stomach-churning gross-out jokes. Call-on for Forte tests against illness or poison."
+      "description": "This character can eat nearly anything and not get sick, even while enduring stomach-churning gross-out jokes. Call-on for Forte tests against illness or poison."
     },
     "bottomless_stomach": {
       "name": "Bottomless Stomach",
