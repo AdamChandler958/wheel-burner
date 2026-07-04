@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { initialCharacter } from '../data/initialCharacter';
+import { validateLifepathSelection, validateSkillSelection } from "../utils/validators";
 
 export function useCharacterEngine() {
   const [rules, setRules] = useState(null);
@@ -254,126 +255,6 @@ export function useCharacterEngine() {
       });
     }
   }
-
-  const PATH_VALIDATORS = {
-    exact_index: (reqIndex, context) => {
-      return context.currentHistory.length === reqIndex;
-    },
-
-
-    any_lifepath: (allowedKeys, context) => {
-      return context.currentHistory.some(lp => allowedKeys.includes(lp.key));
-    },
-
-
-    any_trait: (allowedTraits, context) => {
-      const assignedKeys = Object.keys(context.character.assignedTraits || {});
-      return allowedTraits.some(tKey => assignedKeys.includes(tKey));
-    },
-
-
-    required_setting: (settingKey, context) => {
-      return context.currentHistory.some(lp => lp.setting === settingKey);
-    },
-
-    any_of: (subRulesArray, context) => {
-
-    return subRulesArray.some(subRule => {
-
-      return Object.entries(subRule).every(([ruleType, rulePayload]) => {
-        const validator = PATH_VALIDATORS[ruleType];
-        if (!validator) return false;
-        return validator(rulePayload, context);
-      });
-    });
-  },
-
-  exclude_index: (bannedIndex, context) => {
-    return context.currentHistory.length !== bannedIndex;
-  }
-};
-
-const validateLifepathSelection = (stock, setting, lpKey, characterState) => {
-  const lpData = rules?.lifepaths?.[stock]?.[setting]?.[lpKey];
-  if (!lpData) return { valid: false, errors: ["Lifepath rules definition not found."] };
-  if (!lpData.prereqs) return { valid: true, errors: [] }; 
-
-  const errors = [];
-  const context = {
-    character: characterState,
-    currentHistory: characterState.chosenLifepaths || []
-  };
-
-  Object.entries(lpData.prereqs).forEach(([ruleType, rulePayload]) => {
-
-    if (ruleType === "note") return;
-
-    const validator = PATH_VALIDATORS[ruleType];
-    
-    if (!validator) {
-      console.warn(`Missing engine validator implementation for rule type: "${ruleType}"`);
-      return;
-    }
-
-
-    const passes = validator(rulePayload, context);
-    if (!passes) {
-      errors.push(lpData.prereqs.note || `Fails requirement: ${ruleType}`);
-    }
-  });
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-};
-
-const SKILL_VALIDATORS = {
-  required_stock: (allowedStock, context) => {
-    return context.character.stock === allowedStock;
-  },
-
-  required_setting: (settingKey, context) => {
-    return context.currentHistory.some(lp => lp.setting === settingKey);
-  }
-};
-
-const validateSkillSelection = (skillKey, characterState, gmOverride = false) => {
-  if (gmOverride) return { valid: true, errors: [] };
-
-  const skillData = rules?.skills?.[skillKey];
-  if (!skillData) return { valid: false, errors: ["Skill rules definition not found."] };
-  if (!skillData.prereqs) return { valid: true, errors: [] }; 
-
-  const errors = [];
-  const context = {
-    character: characterState,
-    currentHistory: characterState.chosenLifepaths || []
-  };
-
-
-  Object.entries(skillData.prereqs).forEach(([ruleType, rulePayload]) => {
-    if (ruleType === "note") return;
-
-    const validator = SKILL_VALIDATORS[ruleType];
-    if (!validator) {
-      console.warn(`Missing engine validator implementation for skill rule: "${ruleType}"`);
-      return;
-    }
-
-    const passes = validator(rulePayload, context);
-    if (!passes) {
-      errors.push(skillData.prereqs.note || `Fails skill requirement: ${ruleType}`);
-    }
-  });
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-};
-
-
 
   let lifepathOptions = [];
   if (rules?.lifepaths && selectedStock && selectedSetting && rules.lifepaths[selectedStock]?.[selectedSetting]) {
@@ -645,6 +526,14 @@ const validateSkillSelection = (skillKey, characterState, gmOverride = false) =>
     });
   };
 
+  const handleValidateLifepath = (stock, setting, lpKey, characterState) => {
+    return validateLifepathSelection(rules, stock, setting, lpKey, characterState);
+  };
+
+  const handleValidateSkill = (skillKey, characterState, gmOverride = false) => {
+    return validateSkillSelection(rules, skillKey, characterState, gmOverride);
+  };
+
   return {
     // Structural System States
     rules,
@@ -673,7 +562,7 @@ const validateSkillSelection = (skillKey, characterState, gmOverride = false) =>
     removeLifepath,
     handleResolveStatChoice,
     abortPendingLifepath,
-    validateLifepathSelection,
+    validateLifepathSelection: handleValidateLifepath,
 
     // Aggregated Character Background Information
     totalYears,
@@ -702,7 +591,7 @@ const validateSkillSelection = (skillKey, characterState, gmOverride = false) =>
     availableLifepathSkillsSet,
     adjustSkillPoints,
     setSelectedLifepathKey,
-    validateSkillSelection,
+    validateSkillSelection: handleValidateSkill,
     
 
     // Skill Lookup/Search Utilities
